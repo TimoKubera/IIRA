@@ -553,8 +553,10 @@ class ResultsHelpFrame(tk.Toplevel):
 
         #TODO Namen anpassen
         tab_general = ttk.Frame(self.notebook)
+        tab_interpratation = ttk.Frame(self.notebook)
 
         self.notebook.add(tab_general, text ="Generell")
+        self.notebook.add(tab_interpratation, text ="Interpretation")
 
         self.notebook.pack(expand = True, fill ="both")
 
@@ -590,6 +592,27 @@ class ResultsHelpFrame(tk.Toplevel):
                                    "in der Analyse betrachtet worden sind."))
         
         general_txt.pack(padx = 15, pady = 30)
+
+
+        interpretation_txt = tk.Text(tab_interpratation, foreground="black", background="white", relief="flat",
+                      font="Arial 18", highlightthickness = 0, borderwidth=0)
+        interpretation_txt.tag_configure("bold", font="Arial 18 bold")
+        interpretation_txt.insert("end", "Wie werden die Werte interpretiert?\n\n", "bold")
+        interpretation_txt.insert("end", ("In der folgenden Tabelle wurde die gängige Interpretation der Ergebnisse der "
+                                          "Intra- und Interrater-Analysen dargestellt. Die Interpretationsmöglichkeit gilt "
+                                          "für alle auswählbaren Metriken.\n\n"))
+
+        interpretation_txt.insert("end", "Interpretation nach Landis & Koch:\n\n", "bold")
+        interpretation_txt.insert("end", "Metrikwert | Grad der Übereinstimmung\n", "bold")
+        interpretation_txt.insert("end", "<0.00         | Poor\n")
+        interpretation_txt.insert("end", "0.00 - 0.20 | Slight\n")
+        interpretation_txt.insert("end", "0.21 - 0.40 | Fair\n")
+        interpretation_txt.insert("end", "0.41 - 0.60 | Moderate\n")
+        interpretation_txt.insert("end", "0.61 - 0.80 | Substantial\n")
+        interpretation_txt.insert("end", "0.81 - 0.80 | Almost Perfect\n")
+
+        
+        interpretation_txt.pack(padx = 15, pady = 30)
 
 class RateHelpFrame(tk.Toplevel):
     """
