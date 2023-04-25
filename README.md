@@ -87,34 +87,17 @@ Eine vollständige Liste der requirements findest du unter <a href="#requirement
 
 <!-- GETTING STARTED -->
 ## Requirements
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
 ### Installation
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Die Repo von <a href="https://github.com/timokubera/iira">GitHub</a> clonen.
+2. Abhängigkeiten installieren
    ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+   cd ~/path/to/IIRA
+   pip3 install -r requirements.txt
    ```
-3. Install NPM packages
+3. Programm ausführen
    ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
+   python app.py
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -123,48 +106,54 @@ _Below is an example of how you can instruct your audience on installing and set
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+1. Analysieren Use Case
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Bevor ein Datensatz analysiert werden kann, muss der SW-User vorab einige Informationen übermitteln.
+Diese umfassen:
+* Skalenformat der Daten auswählen (nominal, ordinal, intervall, rational)
+* Datei importieren
+  * Kategorienamen spezifizieren (bei diskretem Skalenformat)
+* Auswahl der Bewerter, deren Bewertungen analysiert werden sollen
+* Auswahl der Metriken, mit denen die Analyse durchgeführt werden soll
+* Auswahl der Gewichte für die Metriken
+* Analyse starten
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+Es stehen die folgenden Metriken für die Analysen zur Auswahl:
+* Cohen's Kappa
+* Conger's Kappa
+* Fleiss' Kappa
+* Krippendorff's Alpha
+* Gwet's AC
+* ICC
+
+Nachdem die Informationen angegeben worden sind, kann eine Analyse durchgeführt und als Excel-Datei exportiert werden.
+
+Die Ergebnisse von Intrarater-Analysen von mehreren Bewertern, werden auf dem folgenden Bild dargestellt.
+
+<img src="https://raw.githubusercontent.com/TimoKubera/IIRA/main/data/img/analyse.png" alt="analyse-results">
+
+Jedes Fenster in der GUI ist mit einem Hilfe-Button ausgestattet, in dem Informationen zum gerade geöffneten Fenster bereitgestellt werden.
+Das Hilfefenster bzgl. der Ergebnisse liefert beispielsweise eine Interpretationsmöglichkeit der Ergebnisse nach Landis & Koch.
+
+<img src="https://raw.githubusercontent.com/TimoKubera/IIRA/main/data/img/helpframe_interpretation.png" alt="help-interpretation">
+
+2. Bewerten Use Case
+Um einen Datensatz zu bewerten, ist das Vorgehen ähnlich:
+* Skalenformat der Daten auswählen (nominal, ordinal, intervall, rational)
+* Datei importieren
+  * Kategorienamen spezifizieren (bei diskretem Skalenformat)
+* Bewertungen starten
+
+Bevor die Bewertungssession gestartet wird, hat der Bewerter die Möglichkeit, die Reihenfolge der Bewertungselemente zu randomisieren. Dadurch soll sichergestellt werden, dass sich der Bewerter nicht an Patterns gewöhnen kann, die den Bewertungsvorgang beeinflußen könnten.
+
+Die Bewertung wird anschließend in dem folgenden Fenster vorgenommen.
+
+<img src="https://raw.githubusercontent.com/TimoKubera/IIRA/main/data/img/rate.png" alt="help-interpretation">
+
+Beim Speichern der Bewertungssession, werden sowohl die vorgenommenen Bewertungen gespeichert, als auch ein Bewertername, bzw. eine Bewerter-ID.
+Die Bewerter-ID entspricht dem aktuell angemeldeten Profil und kann während der Bewertungssession über den entsprechenden Button, oben links, geändert werden.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- LICENSE -->
