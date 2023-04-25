@@ -36,16 +36,12 @@
       <a href="#requirements">Requirements</a>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#license">Lizenz</a></li>
+    <li><a href="#contact">Kontakt</a></li>
   </ol>
 </details>
 
-
-
+<a name="about-the-project"></a>
 <!-- ABOUT THE PROJECT -->
 ## Über das Projekt
 
@@ -71,7 +67,7 @@ Anwendungen:
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
+<a name="built-with"></a>
 ### Built With
 
 Eine kleine Übersicht der wichtigsten Sprachen und Frameworks.
@@ -84,7 +80,7 @@ Eine vollständige Liste der requirements findest du unter <a href="#requirement
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
+<a name="requirements"></a>
 <!-- GETTING STARTED -->
 ## Requirements
 ### Installation
@@ -103,7 +99,7 @@ Eine vollständige Liste der requirements findest du unter <a href="#requirement
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
+<a name="usage"></a>
 <!-- USAGE EXAMPLES -->
 ## Usage
 1. Analysieren Use Case
@@ -155,7 +151,7 @@ Die Bewerter-ID entspricht dem aktuell angemeldeten Profil und kann während der
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
+<a name="license"></a>
 <!-- LICENSE -->
 ## Lizenz
 
@@ -164,7 +160,7 @@ Das Projekt wurde unter der MIT-Lizenz veröffentlicht. Siehe in die `LICENSE.tx
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
+<a name="contact"></a>
 <!-- CONTACT -->
 ## Kontakt
 Mail: [mail@timokubera.it](mailto:mail@timokubera.it)
