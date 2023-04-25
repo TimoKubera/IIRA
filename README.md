@@ -135,7 +135,7 @@ Die Ergebnisse von Intrarater-Analysen von mehreren Bewertern, werden auf dem fo
 Jedes Fenster in der GUI ist mit einem Hilfe-Button ausgestattet, in dem Informationen zum gerade geöffneten Fenster bereitgestellt werden.
 Das Hilfefenster bzgl. der Ergebnisse liefert beispielsweise eine Interpretationsmöglichkeit der Ergebnisse nach Landis & Koch.
 
-<img src="https://raw.githubusercontent.com/TimoKubera/IIRA/main/data/img/helpframe_interpretation.png" alt="help-interpretation" width="300" heigth="500">
+<img src="https://raw.githubusercontent.com/TimoKubera/IIRA/main/data/img/helpframe_interpretation.png" alt="help-interpretation" width="420" heigth="700">
 
 2. Bewerten Use Case
 Um einen Datensatz zu bewerten, ist das Vorgehen ähnlich:
