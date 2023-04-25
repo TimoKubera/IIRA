@@ -169,7 +169,7 @@ Das Projekt wurde unter der MIT-Lizenz veröffentlicht. Siehe in die `LICENSE.tx
 ## Kontakt
 Mail: [mail@timokubera.it](mailto:mail@timokubera.it)
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Project Link: [https://github.com/TimoKubera/IIRA](https://github.com/TimoKubera/IIRA)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
