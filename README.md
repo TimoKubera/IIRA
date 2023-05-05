@@ -83,6 +83,17 @@ Eine vollständige Liste der requirements findest du unter <a href="#requirement
 <a name="requirements"></a>
 <!-- GETTING STARTED -->
 ## Requirements
+Es ist Python>=3.6 erforderlich, um das Programm auszuführen, sowie die Installation der folgenden Packages:
+* openpyxl
+* odfpy
+* xlrd
+* numpy
+* pandas
+* irrCAC
+* pingouin
+* xlsxwriter
+* pillow
+
 ### Installation
 
 1. Die Repo von <a href="https://github.com/timokubera/iira">GitHub</a> clonen.
