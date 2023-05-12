@@ -609,7 +609,7 @@ class ResultsHelpFrame(tk.Toplevel):
         interpretation_txt.insert("end", "0.21 - 0.40 | Fair\n")
         interpretation_txt.insert("end", "0.41 - 0.60 | Moderate\n")
         interpretation_txt.insert("end", "0.61 - 0.80 | Substantial\n")
-        interpretation_txt.insert("end", "0.81 - 0.80 | Almost Perfect\n")
+        interpretation_txt.insert("end", "0.81 - 1.00 | Almost Perfect\n")
 
         
         interpretation_txt.pack(padx = 15, pady = 30)
