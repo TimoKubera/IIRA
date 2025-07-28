@@ -22,42 +22,34 @@ selected_inter_metrics = []
 
 class AnalyseFrame(ContainerFrame):
     def __init__(self, container):
-        # Metriken in Abhängigkeit vom Skalenformat festlegen
-        self.metrics = []
-
-        # Checkbutton-Variablen für die Metriken
-        # Für Intrarater-Reliability
+        self.metrics: list = []
         self.intra_kappa = tk.IntVar()
         self.intra_fleiss_kappa = tk.IntVar()
         self.intra_alpha_coefficient = tk.IntVar()
         self.intra_ac = tk.IntVar()
-        #self.intra_g_index = tk.IntVar()
         self.intra_icc = tk.IntVar()
-        self.intra_metrics = {
-            "Cohen's-|Conger's \u03BA": self.intra_kappa,
-            "Fleiss' \u03BA": self.intra_fleiss_kappa,
-            "Krippendorff's \u03B1": self.intra_alpha_coefficient,
+        self.intra_metrics: dict = {
+            "Cohen's-|Conger's ba": self.intra_kappa,
+            "Fleiss' ba": self.intra_fleiss_kappa,
+            "Krippendorff's b1": self.intra_alpha_coefficient,
             "Gwet's AC": self.intra_ac,
-            #"G-Index": self.intra_g_index,
             "ICC": self.intra_icc
         }
-        # Für Interrater-Reliability
         self.inter_kappa = tk.IntVar()
         self.inter_fleiss_kappa = tk.IntVar()
         self.inter_alpha_coefficient = tk.IntVar()
         self.inter_ac = tk.IntVar()
-        #self.inter_g_index = tk.IntVar()
         self.inter_icc = tk.IntVar()
-        self.inter_metrics = {
-            "Cohen's-|Conger's \u03BA": self.inter_kappa,
-            "Fleiss' \u03BA": self.inter_fleiss_kappa,
-            "Krippendorff's \u03B1": self.inter_alpha_coefficient,
+        self.inter_metrics: dict = {
+            "Cohen's-|Conger's ba": self.inter_kappa,
+            "Fleiss' ba": self.inter_fleiss_kappa,
+            "Krippendorff's b1": self.inter_alpha_coefficient,
             "Gwet's AC": self.inter_ac,
-            #"G-Index": self.inter_g_index,
             "ICC": self.inter_icc
         }
-
-        # Diese Dictionaries werden in den populate-Funktionen befüllt, da die keys erst
+        self.intra_ids: dict = {}
+        self.inter_ids: dict = {}
+        super().__init__(container)
         # zur Laufzeit ermittelt werden.
         self.intra_ids = {}
         self.inter_ids = {}
