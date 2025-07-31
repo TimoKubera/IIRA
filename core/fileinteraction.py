@@ -28,32 +28,30 @@ TODO's:
 - 
 """
 
-class FileValidation():
-    def __init__(self, file, scale_format):
-        self.debug = False
+
+class FileValidation:
+    def __init__(self, file: str, scale_format: str) -> None:
+        self.debug: bool = False
+        self.content: pd.DataFrame | None = None
+        self.format: str | None = None
+        self.scale_format: str = scale_format
+        self.categories: list = []
+        self.rater_ids: list = []
+        self.text: list = []
+        self.formatted_text: list = []
+        self.labels: dict = {}
+
         file_extension = pathlib.Path(file).suffix
-        self.content = None # Beinhaltet das Pandas-Objekt, welches vom File geparsed wird.
-        self.format = None # Format 1, oder Format 2. Wird in der GUI näher beschrieben
-
-        # Attribute die für die App-Klasse relevant sind
-        self.scale_format = scale_format                # Enthält das Skalenformat als String
-        self.categories = []                            # Enthält die Kategorien aus der Datei als String-Elemente
-        self.rater_ids = []                             # Enthält die Rater ID's aus der Datei als String-Elemente
-        self.text = []                                  # Enthält Text, mit Metadaten wie bei LimeSurvey als String-Elemente
-        self.formatted_text = []                        # Enthält Text, bereinigt von Metadaten als String-Elemente
-        self.labels = {}                                # Enthält für jeden Rater die gesetzten Label für den jeweiligen Text z.B. {"Alice": ["Sehr gut gemacht", "Positive"], ["Beispieltext", nAn]}
-
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        if file_extension in (".xlsx", ".xls"):
             self.content = pd.read_excel(file)
         elif file_extension == ".ods":
             self.content = pd.read_excel(file, engine="odf")
         else:
-            self.content = pd.read_csv(file, delimiter=";") #TODO Andere Delimiter akzeptieren
+            self.content = pd.read_csv(file, delimiter=";")  # TODO: Andere Delimiter akzeptieren
 
-        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]  # Leere Spalten am Ende des Objektes entfernen.
-        
+        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]
         self.check_format()
-        if self.scale_format == "nominal" or self.scale_format == "ordinal":
+        if self.scale_format in ("nominal", "ordinal"):
             self.find_categories()
         self.find_rater_ids()
         self.find_text()
