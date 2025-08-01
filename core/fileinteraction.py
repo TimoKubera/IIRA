@@ -15,6 +15,7 @@ from core.metrics import map_metrics
 
 PROFILE = 0
 RATING = 1
+EXCEL_EXTENSIONS = (".xlsx", ".xls")
 """ Globale Variablen und Konstanten """
 
 """
@@ -26,7 +27,7 @@ TODO's:
 class FileValidation():
     def __init__(self, file, scale_format):
         self.debug = False
-        file_extension = pathlib.Path(file).suffix
+        file_extension = pathlib.Path(file).suffix.lower()
         self.content = None # Beinhaltet das Pandas-Objekt, welches vom File geparsed wird.
         self.format = None # Format 1, oder Format 2. Wird in der GUI näher beschrieben
 
@@ -36,16 +37,16 @@ class FileValidation():
         self.rater_ids = []                             # Enthält die Rater ID's aus der Datei als String-Elemente
         self.text = []                                  # Enthält Text, mit Metadaten wie bei LimeSurvey als String-Elemente
         self.formatted_text = []                        # Enthält Text, bereinigt von Metadaten als String-Elemente
-        self.labels = {}                                # Enthält für jeden Rater die gesetzten Label für den jeweiligen Text z.B. {"Alice": ["Sehr gut gemacht", "Positive"], ["Beispieltext", nAn]}
+        self.labels = {}                                # Enthält für jeden Rater die gesetzten Label für den jeweiligen Text
 
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        if file_extension in EXCEL_EXTENSIONS:
             self.content = pd.read_excel(file)
         elif file_extension == ".ods":
             self.content = pd.read_excel(file, engine="odf")
         else:
             self.content = pd.read_csv(file, delimiter=";") #TODO Andere Delimiter akzeptieren
 
-        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]  # Leere Spalten am Ende des Objektes entfernen.
+        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]  
         
         self.check_format()
         if self.scale_format == "nominal" or self.scale_format == "ordinal":
@@ -82,17 +83,16 @@ class FileValidation():
 
         for header in headers: #TODO ggf. stemming
             header = header.lower()
-            if header == "Rater ID".lower():
+            if header == "rater id":
                 self.format = "Format 1"
                 return
             
-            if header == "Subject".lower():
+            if header == "subject":
                 self.format = "Format 2"
                 return
         
         raise ValueError
         
-
     def find_categories(self):
         for item in self.content["Categories"]: # Alle folgenden Einträge ungleich nAn
             if not pd.isnull(item):
@@ -276,8 +276,8 @@ class FileValidation():
 
         df = pd.concat([df, date_df], axis="columns")
 
-        file_extension = pathlib.Path(path).suffix
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        file_extension = pathlib.Path(path).suffix.lower()
+        if file_extension in EXCEL_EXTENSIONS:
             df.to_excel(path, index = False, header=True)
         elif file_extension == ".ods":
             df.to_excel(path, engine="odf", index = False, header=True)
@@ -306,15 +306,57 @@ class FileValidation():
 
 class DBInteraction():
     def __init__(self, db_path):
-        file_extension = pathlib.Path(db_path).suffix
+        file_extension = pathlib.Path(db_path).suffix.lower()
         self.db_path = db_path
         self.db = None # Beinhaltet das Pandas-Objekt, welches vom File geparsed wird.
 
         self.active_profile = ""
         self.profiles = []
 
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        if file_extension in EXCEL_EXTENSIONS:
             self.db = pd.read_excel(db_path)
+        elif file_extension == ".ods":
+            self.db = pd.read_excel(db_path, engine="odf")
+        else:
+            self.db = pd.read_csv(db_path, delimiter=";") #TODO Andere Delimiter akzeptieren
+        
+        self.load_profiles()
+
+    def load_profiles(self):
+        # Lädt beim Systemstart alle Profile
+        if len(self.db["Profile"]) > 0:
+            if not pd.isnull(self.db["Profile"][0]):
+                self.active_profile = self.db["Profile"][0]
+                self.profiles = list(self.db["Profile"][1:])
+        else:
+            return
+    
+    def create_profile(self, new_profile):
+        if self.active_profile != "":
+            self.profiles.append(self.active_profile)
+        self.active_profile = new_profile
+
+        self.write_to_db()
+
+    def delete_profile(self):
+        self.active_profile = self.profiles[0]
+        self.profiles.remove(self.active_profile)
+
+        self.write_to_db()
+
+    def change_profile(self, change_to):
+        tmp = self.active_profile
+        self.active_profile = change_to
+        self.profiles.remove(change_to)
+        self.profiles.append(tmp)
+
+        self.write_to_db()
+
+    def write_to_db(self):
+        # Falls mehr Spalten zur DB hinzukommen muss man ggf. noch darauf achten, dass
+        # leere Spalten mit nAn gefüllt werden, um Seiteneffekte zu vermeiden.
+        self.db = pd.DataFrame([self.active_profile] + self.profiles, columns=["Profile"])
+        self.db.to_csv(self.db_path, sep=";", index = False, header=True)
         elif file_extension == ".ods":
             self.db = pd.read_excel(db_path, engine="odf")
         else:
