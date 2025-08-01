@@ -81,19 +81,17 @@ class FileValidation():
     def check_format(self):
         headers = list(self.content.columns)
 
-        for header in headers: #TODO ggf. stemming
+        for header in headers:
             header = header.lower()
             if header == "rater id":
                 self.format = "Format 1"
                 return
-            
+        
             if header == "subject":
                 self.format = "Format 2"
                 return
         
         raise ValueError
-        
-    def find_categories(self):
         for item in self.content["Categories"]: # Alle folgenden Einträge ungleich nAn
             if not pd.isnull(item):
                 self.categories.append(item)
