@@ -44,7 +44,7 @@ class FileValidation():
         elif file_extension == ".ods":
             self.content = pd.read_excel(file, engine="odf")
         else:
-            self.content = pd.read_csv(file, delimiter=";") #TODO Andere Delimiter akzeptieren
+            self.content = pd.read_csv(file, sep=None, engine="python")
 
         self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]  
         
