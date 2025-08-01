@@ -1,8 +1,3 @@
-"""
-In dem Modul wird eine Klasse definiert, die es ermöglicht eine Eingabedatei zu validieren.
-TODO ...
-"""
-
 import re
 import pathlib
 import datetime
