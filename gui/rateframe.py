@@ -1,7 +1,3 @@
-"""
-In diesem Modul wird die Ansicht implementiert, in der Bewertungen vorgenommen werden können.
-"""
-
 import math
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -634,4 +630,5 @@ class RateFrame(ContainerFrame):
         self.populate_navigation()
         self.populate_text()
         self.populate_percentage()
+
         
