@@ -1,7 +1,3 @@
-"""
-TODO
-"""
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 import shutil
@@ -666,4 +662,5 @@ class RateHelpFrame(tk.Toplevel):
 
 def callback(url):
     """ Die Funktion erhält ein String-Argument, welches im Webbrowser geöffnet wird. """
+
     webbrowser.open_new(url)
