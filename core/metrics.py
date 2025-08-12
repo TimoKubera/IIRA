@@ -1,8 +1,3 @@
-"""
-In dem Modul wird eine Klasse definiert, die alle Metriken beinhaltet, die im Programm verwendet werden
-TODO ...
-"""
-
 import irrCAC as ir
 from irrCAC.raw import CAC 
 import pingouin as pg
@@ -254,4 +249,5 @@ def map_metrics(metric):
     elif metric == "Krippendorff's \u03B1":
         return "krippendorff"
     elif metric == "Gwet's AC":
+
         return "gwet"
