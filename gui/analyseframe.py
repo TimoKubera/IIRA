@@ -1,5 +1,5 @@
 """
-TODO
+
 """
 
 import tkinter as tk
@@ -598,4 +598,5 @@ class ResultsFrame(ContainerFrame):
         """
         self.calculate_results()
         self.populate_intra_results()
+
         self.populate_inter_results()
