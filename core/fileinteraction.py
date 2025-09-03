@@ -1,8 +1,3 @@
-"""
-In dem Modul wird eine Klasse definiert, die es ermöglicht eine Eingabedatei zu validieren.
-TODO ...
-"""
-
 import re
 import pathlib
 import datetime
@@ -20,6 +15,8 @@ from core.metrics import map_metrics
 
 PROFILE = 0
 RATING = 1
+EXCEL_EXTENSIONS = (".xlsx", ".xls")
+RATER_ID = "Rater ID"
 """ Globale Variablen und Konstanten """
 
 """
@@ -31,7 +28,7 @@ TODO's:
 class FileValidation():
     def __init__(self, file, scale_format):
         self.debug = False
-        file_extension = pathlib.Path(file).suffix
+        file_extension = pathlib.Path(file).suffix.lower()
         self.content = None # Beinhaltet das Pandas-Objekt, welches vom File geparsed wird.
         self.format = None # Format 1, oder Format 2. Wird in der GUI näher beschrieben
 
@@ -41,16 +38,16 @@ class FileValidation():
         self.rater_ids = []                             # Enthält die Rater ID's aus der Datei als String-Elemente
         self.text = []                                  # Enthält Text, mit Metadaten wie bei LimeSurvey als String-Elemente
         self.formatted_text = []                        # Enthält Text, bereinigt von Metadaten als String-Elemente
-        self.labels = {}                                # Enthält für jeden Rater die gesetzten Label für den jeweiligen Text z.B. {"Alice": ["Sehr gut gemacht", "Positive"], ["Beispieltext", nAn]}
+        self.labels = {}                                # Enthält für jeden Rater die gesetzten Label für den jeweiligen Text
 
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        if file_extension in EXCEL_EXTENSIONS:
             self.content = pd.read_excel(file)
         elif file_extension == ".ods":
             self.content = pd.read_excel(file, engine="odf")
         else:
-            self.content = pd.read_csv(file, delimiter=";") #TODO Andere Delimiter akzeptieren
+            self.content = pd.read_csv(file, sep=None, engine="python")
 
-        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]  # Leere Spalten am Ende des Objektes entfernen.
+        self.content = self.content.loc[:, ~self.content.columns.str.contains("^Unnamed")]
         
         self.check_format()
         if self.scale_format == "nominal" or self.scale_format == "ordinal":
@@ -85,27 +82,24 @@ class FileValidation():
     def check_format(self):
         headers = list(self.content.columns)
 
-        for header in headers: #TODO ggf. stemming
+        for header in headers:
             header = header.lower()
-            if header == "Rater ID".lower():
+            if header == RATER_ID.lower():
                 self.format = "Format 1"
                 return
-            
-            if header == "Subject".lower():
+        
+            if header == "subject":
                 self.format = "Format 2"
                 return
         
         raise ValueError
-        
-
-    def find_categories(self):
         for item in self.content["Categories"]: # Alle folgenden Einträge ungleich nAn
             if not pd.isnull(item):
                 self.categories.append(item)
 
     def find_rater_ids(self):
         if self.format == "Format 1":
-            for item in self.content["Rater ID"]: # Alle folgenden Einträge ungleich nAn
+            for item in self.content[RATER_ID]: # Alle folgenden Einträge ungleich nAn
                 if not pd.isnull(item):
                     if item not in self.rater_ids:
                         self.rater_ids.append(item) # Duplikate nicht erlaubt
@@ -147,7 +141,7 @@ class FileValidation():
             else:
                 # Für Intervall- und Rationaldaten sind alle Spalten außer der Subject-Spalte relevant
                 for header in self.content:
-                    if header == "Rater ID":                            # Skippe die Rater ID Spalte
+                    if header == RATER_ID:                            # Skippe die Rater ID Spalte
                         continue
                     self.formatted_text.append(self.nlp(header)) # Duplikate erlaubt
                     self.text.append(header)
@@ -161,8 +155,8 @@ class FileValidation():
     def find_labels(self):
         if self.format == "Format 1":
             for row in range(len(self.content)): # Iteriere über die Zeilen
-                if pd.isnull(self.content.loc[row, "Rater ID"]):
-                    # Zeilen mit leeren Eintrag bei "Rater ID" überspringen
+                if pd.isnull(self.content.loc[row, RATER_ID]):
+                    # Zeilen mit leeren Eintrag bei Rater ID überspringen
                     continue
 
                 text_label_list = []
@@ -172,11 +166,11 @@ class FileValidation():
                     # Fügt der text_label_list Tupel hinzu, die aus dem Text und dem Label bestehen.
                     text_label_list.append((self.formatted_text[i], self.content.loc[row, text]))
 
-                if self.content.loc[row, "Rater ID"] in self.labels:
+                if self.content.loc[row, RATER_ID] in self.labels:
                     # Falls es Zeilen mit der gleichen Rater ID gibt, füge sie dem label-dictionary hinzu.
-                    self.labels[self.content.loc[row, "Rater ID"]] += text_label_list
+                    self.labels[self.content.loc[row, RATER_ID]] += text_label_list
                 else:
-                    self.labels[self.content.loc[row, "Rater ID"]] = text_label_list
+                    self.labels[self.content.loc[row, RATER_ID]] = text_label_list
         elif self.format == "Format 2":
             for rater_id in self.rater_ids:
                 text_label_list = []
@@ -281,8 +275,8 @@ class FileValidation():
 
         df = pd.concat([df, date_df], axis="columns")
 
-        file_extension = pathlib.Path(path).suffix
-        if file_extension == ".xlsx" or file_extension == ".xls":
+        file_extension = pathlib.Path(path).suffix.lower()
+        if file_extension in EXCEL_EXTENSIONS:
             df.to_excel(path, index = False, header=True)
         elif file_extension == ".ods":
             df.to_excel(path, engine="odf", index = False, header=True)
@@ -307,106 +301,6 @@ class FileValidation():
 
         # Platz für weiteres NLP bei Bedarf
         return text
-
-
-class DBInteraction():
-    def __init__(self, db_path):
-        file_extension = pathlib.Path(db_path).suffix
-        self.db_path = db_path
-        self.db = None # Beinhaltet das Pandas-Objekt, welches vom File geparsed wird.
-
-        self.active_profile = ""
-        self.profiles = []
-
-        if file_extension == ".xlsx" or file_extension == ".xls":
-            self.db = pd.read_excel(db_path)
-        elif file_extension == ".ods":
-            self.db = pd.read_excel(db_path, engine="odf")
-        else:
-            self.db = pd.read_csv(db_path, delimiter=";") #TODO Andere Delimiter akzeptieren
-        
-        self.load_profiles()
-
-    def load_profiles(self):
-        # Lädt beim Systemstart alle Profile
-        if len(self.db["Profile"]) > 0:
-            if not pd.isnull(self.db["Profile"][0]):
-                self.active_profile = self.db["Profile"][0]
-                self.profiles = list(self.db["Profile"][1:])
-        else:
-            return
-    
-    def create_profile(self, new_profile):
-        if self.active_profile != "":
-            self.profiles.append(self.active_profile)
-        self.active_profile = new_profile
-
-        self.write_to_db()
-
-    
-    def delete_profile(self):
-        self.active_profile = self.profiles[0]
-        self.profiles.remove(self.active_profile)
-
-        self.write_to_db()
-
-    def change_profile(self, change_to):
-        tmp = self.active_profile
-        self.active_profile = change_to
-        self.profiles.remove(change_to)
-        self.profiles.append(tmp)
-
-        self.write_to_db()
-
-    def write_to_db(self):
-        # Falls mehr Spalten zur DB hinzukommen muss man ggf. noch darauf achten, dass
-        # leere Spalten mit nAn gefüllt werden, um Seiteneffekte zu vermeiden.
-        self.db = pd.DataFrame([self.active_profile] + self.profiles, columns=["Profile"])
-        self.db.to_csv(self.db_path, sep=";", index = False, header=True)
-
-
-def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, scale_format, filename):
-    """
-    Exportiert eine Excel-Datei, die alle Daten der Intra- und Inter-Reliability-Analse enthält.
-    """
-
-    workbook = xlsxwriter.Workbook(filename)
-    worksheet = workbook.add_worksheet()
-    b_cell_format = workbook.add_format()
-    b_cell_format.set_bold()
-
-    not_enough_ratings = []
-    
-    if scale_format == "nominal" or scale_format == "ordinal":
-        # In self.reliability_analyses wird ein CAC-Objekt gespeichert, falls das
-        # Skalenformat nominal oder ordinal ist.
-        if intra_ids and intra_metrics:
-            worksheet.write(0, 0, "Intra-Rater-Analyse", b_cell_format)
-            worksheet.write(1, 0, "")
-            worksheet.write(2, 0, "Gewichte", b_cell_format)
-            worksheet.write(3, 0, analyse.results["intra"][intra_ids[0]].weights_name)
-            worksheet.write(4, 0, "")
-            worksheet.write(5, 0, "")
-            worksheet.write(6, 0, "Rater ID", b_cell_format)
-            worksheet.write(6, 1, "#Subjects", b_cell_format)
-            worksheet.write(6, 2, "#Replicates", b_cell_format)
-            j = 3
-            for metric in intra_metrics:
-                worksheet.write(6, j, metric, b_cell_format)
-                j += 1
-            i = 7
-            for rater_id in intra_ids:
-                quant_subjects = analyse.results["intra"][rater_id].n
-                quant_replicates = analyse.results["intra"][rater_id].r
-                if quant_replicates < 2 or quant_subjects < 1:
-                    # Falls keine Subjects bewertet worden sind, oder keine Subjects mehrfach bewertet worden sind
-                    # kann keine Intra-Rater-Analyse vorgenommen werden.
-                    not_enough_ratings.append(str(rater_id))
-                    continue
-
-                worksheet.write(i, 0, rater_id)
-                worksheet.write(i, 1, quant_subjects)
-                worksheet.write(i, 2, quant_replicates)
 
                 j = 3
                 cont = False
