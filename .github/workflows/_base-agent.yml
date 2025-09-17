@@ -1,0 +1,497 @@
+# This is the "abstract base class" for all agentic bot workflows.
+# It contains all common logic and can be extended by concrete agent implementations.
+#
+# This workflow should not be called directly - use the concrete agent workflows instead.
+name: Base Agent Workflow
+
+# Set explicit permissions for the GITHUB_TOKEN
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: 'runs-on labels as JSON array'
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
+      # Agent Identity (required for all agents)
+      agent_name:
+        description: "Internal name of the agent (e.g., utop_agent, test_agent)"
+        required: true
+        type: string
+      agent_image:
+        description: "Docker image for the agent (e.g., utop_agent:latest)"
+        required: true
+        type: string
+      agent_display_name:
+        description: "Human-readable name shown in GitHub (e.g., UTOP Agent - Code Review)"
+        required: true
+        type: string
+
+      # Trigger Configuration
+      trigger_labels:
+        description: "Comma-separated list of labels that trigger this agent"
+        required: true
+        type: string
+
+      # Runtime Settings
+      agent_timeout:
+        description: "Timeout in seconds for agent execution"
+        required: false
+        type: string
+        default: "600"
+      max_retries:
+        description: "Maximum number of retry attempts"
+        required: false
+        type: string
+        default: "3"
+
+      # Docker Configuration
+      docker_registry:
+        description: "Docker registry URL"
+        required: false
+        type: string
+        default: "ghcr.io/ki-reply-gmbh/silicon-shoring-agentic-bots"
+
+      # Agent-Specific Configuration
+      required_secrets:
+        description: "JSON array of required secret names for this agent"
+        required: false
+        type: string
+        default: '["OPENAI_API_KEY"]'
+
+      # Optional Features
+      enable_langsmith:
+        description: "Enable LangSmith tracing"
+        required: false
+        type: boolean
+        default: true
+      project_name:
+        description: "LangSmith project name (default: 'default_project')"
+        required: false
+        type: string
+        default: "default_project"
+
+    secrets:
+      # Core GitHub Integration (required for all agents)
+      GIT_ACCESS_TOKEN:
+        description: "GitHub Personal Access Token"
+        required: true
+      GIT_USER_NAME:
+        description: "GitHub username"
+        required: true
+      GIT_USER_EMAIL:
+        description: "GitHub email"
+        required: true
+
+      # Agent-Specific Secrets (passed through dynamically)
+      OPENAI_API_KEY:
+        description: "OpenAI API key for LLM-powered agents"
+        required: false
+      SONAR_TOKEN:
+        description: "SonarQube token for code analysis (legacy)"
+        required: false
+      LANGSMITH_API_KEY:
+        description: "LangChain API key for enhanced tracing"
+        required: false
+
+      SONARQUBE_URL:
+        description: "SonarQube server URL (e.g., https://sonar.example.com)"
+        required: false
+      SONARQUBE_TOKEN:
+        description: "SonarQube token"
+        required: false
+      SONARQUBE_PROJECT_KEY:
+        description: "SonarQube project key"
+        required: false
+
+jobs:
+  execute-agent:
+    name: ${{ inputs.agent_display_name }}
+    runs-on: ${{ fromJSON(inputs.runner) }}
+
+    # Dynamic condition based on trigger labels
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed' &&
+      !contains(github.event.pull_request.head.commit.message, '[bot]') &&
+      !contains(github.event.pull_request.head.commit.message, '[skip ci]') &&
+      github.event.pull_request.head.commit.author.name != 'github-actions[bot]' &&
+      github.event.pull_request.head.commit.author.name != 'utop-agent' &&
+      github.event.pull_request.head.commit.author.name != 'tech-debt-bot'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      # Validate agent configuration and secrets
+      - name: Validate Agent Configuration
+        run: |
+          echo "🔍 Validating agent configuration..."
+          
+          # Validate required inputs
+          if [ -z "${{ inputs.agent_name }}" ] || [ -z "${{ inputs.agent_image }}" ] || [ -z "${{ inputs.trigger_labels }}" ]; then
+            echo "❌ Error: Required inputs missing (agent_name, agent_image, trigger_labels)"
+            exit 1
+          fi
+          
+          # Validate core secrets (fallback to defaults if not provided)
+          GIT_TOKEN="${{ github.token }}"
+          if [ -z "$GIT_TOKEN" ]; then
+            echo "❌ Error: No GitHub token available"
+            exit 1
+          fi
+          
+          echo "✅ Using GitHub token (first 4 chars): ${GIT_TOKEN:0:4}..."
+          echo "✅ Using Git user: ${{ secrets.GIT_USER_NAME || 'github-actions[bot]' }}"
+          echo "✅ Using Git email: ${{ secrets.GIT_USER_EMAIL || 'github-actions[bot]@users.noreply.github.com' }}"
+          
+          # Validate agent-specific secrets
+          REQUIRED_SECRETS='${{ inputs.required_secrets }}'
+          if echo "$REQUIRED_SECRETS" | jq -e '.[] | select(. == "OPENAI_API_KEY")' >/dev/null; then
+            if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+              echo "❌ Error: OPENAI_API_KEY required but not provided"
+              exit 1
+            fi
+          fi
+          if echo "$REQUIRED_SECRETS" | jq -e '.[] | select(. == "SONAR_TOKEN")' >/dev/null; then
+            if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+              echo "❌ Error: SONAR_TOKEN required but not provided"
+              exit 1
+            fi
+          fi
+          # ✅ New: SonarQube envs (validate only if requested in required_secrets)
+          if echo "$REQUIRED_SECRETS" | jq -e '.[] | select(. == "SONARQUBE_URL")' >/dev/null; then
+            if [ -z "${{ secrets.SONARQUBE_URL }}" ]; then
+              echo "❌ Error: SONARQUBE_URL required but not provided"
+              exit 1
+            fi
+          fi
+          if echo "$REQUIRED_SECRETS" | jq -e '.[] | select(. == "SONARQUBE_TOKEN")' >/dev/null; then
+            if [ -z "${{ secrets.SONARQUBE_TOKEN }}" ]; then
+              echo "❌ Error: SONARQUBE_TOKEN required but not provided"
+              exit 1
+            fi
+          fi
+          if echo "$REQUIRED_SECRETS" | jq -e '.[] | select(. == "SONARQUBE_PROJECT_KEY")' >/dev/null; then
+            if [ -z "${{ secrets.SONARQUBE_PROJECT_KEY }}" ]; then
+              echo "❌ Error: SONARQUBE_PROJECT_KEY required but not provided"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Configuration validated - Agent: ${{ inputs.agent_name }}, Image: ${{ inputs.agent_image }}"
+
+      # Prevent infinite loops by checking recent commits
+      - name: Check for Bot Commits
+        id: bot-check
+        run: |
+          echo "🔄 Checking for recent bot commits to prevent infinite loops..."
+          
+          # Get the last 5 commits on the PR branch
+          RECENT_COMMITS=$(git log --oneline -5 --pretty=format:"%an|%s" HEAD)
+          echo "Recent commits:"
+          echo "$RECENT_COMMITS"
+          
+          # Check if any recent commits are from bots
+          BOT_COMMIT_FOUND=false
+          while IFS='|' read -r author message; do
+            if [[ "$author" == *"bot"* ]] || [[ "$author" == "github-actions"* ]] || [[ "$author" == "utop-agent" ]] || [[ "$author" == "tech-debt-bot" ]]; then
+              if [[ "$message" == *"[bot]"* ]] || [[ "$message" == *"utop"* ]] || [[ "$message" == *"agent"* ]]; then
+                echo "🛑 Found recent bot commit by $author: $message"
+                BOT_COMMIT_FOUND=true
+                break
+              fi
+            fi
+          done <<< "$RECENT_COMMITS"
+          
+          if [ "$BOT_COMMIT_FOUND" = true ]; then
+            echo "⚠️ Skipping agent execution to prevent infinite loop"
+            echo "proceed=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No recent bot commits found, safe to proceed"
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          fi
+
+      # Check if PR has matching trigger labels or if no labels are required
+      - name: Check Trigger Labels
+        id: label-check
+        if: steps.bot-check.outputs.proceed == 'true'
+        run: |
+          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          TRIGGER_LABELS="${{ inputs.trigger_labels }}"
+
+          echo "📋 PR Labels: $PR_LABELS"
+          echo "🎯 Trigger Labels: $TRIGGER_LABELS"
+
+          # Check if no label filtering is required
+          if [ -z "$TRIGGER_LABELS" ] || [ "$TRIGGER_LABELS" = "*" ] || [ "$TRIGGER_LABELS" = "all" ]; then
+            echo "🔓 No label filtering required - agent will run on all PRs"
+            echo "proceed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if PR has any of the required trigger labels
+          IFS=',' read -ra LABEL_ARRAY <<< "$TRIGGER_LABELS"
+          FOUND_TRIGGER=false
+
+          for trigger_label in "${LABEL_ARRAY[@]}"; do
+            trigger_label=$(echo "$trigger_label" | xargs)
+            [ -z "$trigger_label" ] && continue
+            if [[ ",$PR_LABELS," == *",$trigger_label,"* ]]; then
+              echo "✅ Found matching trigger label: $trigger_label"
+              FOUND_TRIGGER=true
+              break
+            fi
+          done
+
+          if [ "$FOUND_TRIGGER" = true ]; then
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ No matching trigger labels found. Agent will skip execution."
+            echo "💡 Add one of these labels to trigger the agent: $TRIGGER_LABELS"
+            echo "proceed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Setup Docker authentication and pull agent image
+      - name: Setup Docker and Pull Image
+        if: steps.bot-check.outputs.proceed == 'true' && steps.label-check.outputs.proceed == 'true'
+        run: |
+          echo "🔧 Setting up Docker and pulling agent image..."
+          
+          # Set registry URL and authenticate if needed
+          if [ "${{ inputs.docker_registry }}" != "docker.io" ]; then
+            echo "🔐 Authenticating with ${{ inputs.docker_registry }}..."
+            echo "${{ secrets.GIT_ACCESS_TOKEN }}" | docker login "${{ inputs.docker_registry }}" -u "${{ github.actor }}" --password-stdin
+          fi
+          
+          # Determine full image name and pull
+          if [ "${{ inputs.docker_registry }}" = "docker.io" ]; then
+            FULL_IMAGE="${{ inputs.agent_image }}"
+          else
+            FULL_IMAGE="${{ inputs.docker_registry }}/${{ inputs.agent_image }}"
+          fi
+          
+          echo "📥 Pulling agent image: $FULL_IMAGE"
+          docker pull "$FULL_IMAGE"
+          echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_ENV
+
+      # Prepare standardized payload for all agents
+      - name: Prepare Agent Payload
+        if: steps.bot-check.outputs.proceed == 'true' && steps.label-check.outputs.proceed == 'true'
+        id: payload
+        run: |
+          echo "📦 Preparing agent payload..."
+
+          PR_TITLE='${{ github.event.pull_request.title }}'
+          PR_BODY='${{ github.event.pull_request.body }}'
+
+          [ -z "$PR_TITLE" ] || [ "$PR_TITLE" = "null" ] && PR_TITLE="No title provided"
+          [ -z "$PR_BODY" ]  || [ "$PR_BODY" = "null" ]  && PR_BODY="No description provided"
+
+          PAYLOAD=$(jq -n \
+            --arg number "${{ github.event.pull_request.number }}" \
+            --arg title "$PR_TITLE" \
+            --arg body "$PR_BODY" \
+            --arg head_label "${{ github.event.pull_request.head.label }}" \
+            --arg head_ref "${{ github.event.pull_request.head.ref }}" \
+            --arg head_clone_url "${{ github.event.pull_request.head.repo.clone_url }}" \
+            --arg base_label "${{ github.event.pull_request.base.label }}" \
+            --arg base_ref "${{ github.event.pull_request.base.ref }}" \
+            --arg diff_url "${{ github.event.repository.html_url }}/pull/${{ github.event.pull_request.number }}.diff" \
+            '{
+              number: ($number | tonumber),
+              head: { label: $head_label, ref: $head_ref, repo: { clone_url: $head_clone_url } },
+              base: { label: $base_label, ref: $base_ref },
+              title: $title,
+              body: $body,
+              diff_url: $diff_url
+            }')
+
+          if ! echo "$PAYLOAD" | jq . >/dev/null 2>&1; then
+            echo "❌ Error: Generated payload is not valid JSON"
+            exit 1
+          fi
+
+          PAYLOAD_COMPACT=$(echo "$PAYLOAD" | jq -c .)
+          echo "payload<<EOF" >> $GITHUB_OUTPUT
+          echo "$PAYLOAD_COMPACT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "✅ Payload prepared successfully"
+
+      # Execute agent with retry logic and process results
+      - name: Execute Agent
+        if: steps.bot-check.outputs.proceed == 'true' && steps.label-check.outputs.proceed == 'true'
+        id: agent-execution
+        run: |
+          echo "🚀 Executing ${{ inputs.agent_display_name }}..."
+          
+          # Core env
+          export GIT_ACCESS_TOKEN="${{ secrets.GIT_ACCESS_TOKEN }}"
+          export GIT_USER_NAME="${{ secrets.GIT_USER_NAME || 'github-actions[bot]' }}"
+          export GIT_USER_EMAIL="${{ secrets.GIT_USER_EMAIL || 'github-actions[bot]@users.noreply.github.com' }}"
+
+          # Optional env
+          [ -n "${{ secrets.OPENAI_API_KEY }}" ] && export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          [ -n "${{ secrets.SONAR_TOKEN }}" ] && export SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+          [ -n "${{ secrets.LANGSMITH_API_KEY }}" ] && export LANGSMITH_API_KEY="${{ secrets.LANGSMITH_API_KEY }}"
+
+          # SonarQube envs (pass-through to container)
+          [ -n "${{ secrets.SONARQUBE_URL }}" ] && export SONARQUBE_URL="${{ secrets.SONARQUBE_URL }}"
+          [ -n "${{ secrets.SONARQUBE_TOKEN }}" ] && export SONARQUBE_TOKEN="${{ secrets.SONARQUBE_TOKEN }}"
+          [ -n "${{ secrets.SONARQUBE_PROJECT_KEY }}" ] && export SONARQUBE_PROJECT_KEY="${{ secrets.SONARQUBE_PROJECT_KEY }}"
+
+          # LangSmith
+          if [ "${{ inputs.enable_langsmith }}" = "true" ]; then
+            export LANGCHAIN_TRACING_V2="true"
+            export LANGSMITH_TRACING="true"
+            export LANGSMITH_ENDPOINT="https://eu.api.smith.langchain.com"
+            export LANGSMITH_PROJECT="${{ inputs.project_name || 'default_project' }}"
+            echo "🔍 LangSmith tracing enabled for project: $LANGSMITH_PROJECT"
+          fi
+
+          # Output & payload preview
+          mkdir -p /tmp/agent_output
+          PAYLOAD='${{ steps.payload.outputs.payload }}'
+          echo "$PAYLOAD" > /tmp/agent_output/payload.json
+          chmod 777 /tmp/agent_output && chmod 666 /tmp/agent_output/payload.json
+          ls -la /tmp/agent_output/
+          head -c 100 /tmp/agent_output/payload.json; echo
+
+          # DNS -> IPv4(s)
+          MAX_RETRIES=${{ inputs.max_retries }}
+          TIMEOUT=${{ inputs.agent_timeout }}
+          ATTEMPT=1
+          SUCCESS=false
+          EXIT_CODE=0
+
+          while [ $ATTEMPT -le $MAX_RETRIES ] && [ "$SUCCESS" = false ]; do
+            echo "📊 Attempt $ATTEMPT of $MAX_RETRIES"
+
+            ALB_HOST="internal-neurons-alb-436528301.eu-west-1.elb.amazonaws.com"
+            TARGET_HOST="silicon-dev.reply.com"
+            RESOLVED_IPS=$(getent ahostsv4 "$ALB_HOST" | awk '{print $1}' | sort -u)
+            echo "ALB host: $ALB_HOST"
+            echo "Resolved IPv4 addresses: $RESOLVED_IPS"
+
+            FIRST_IP=$(printf "%s\n" $RESOLVED_IPS | head -n1)
+            echo "Using IPv4 for --add-host: ${FIRST_IP:-<none>}"
+
+            # Build optional --add-host flag only if resolution succeeded
+            ADD_HOST_FLAG=""
+            if [ -n "$FIRST_IP" ]; then
+              ADD_HOST_FLAG="--add-host ${TARGET_HOST}:${FIRST_IP}"
+            fi
+
+            # IMPORTANT: do not insert comments inside this continued command
+            if timeout "$TIMEOUT" docker run \
+              $ADD_HOST_FLAG \
+              --rm \
+              -v /tmp/agent_output:/output \
+              -e GIT_ACCESS_TOKEN \
+              -e GIT_USER_NAME \
+              -e GIT_USER_EMAIL \
+              -e OPENAI_API_KEY \
+              -e SONAR_TOKEN \
+              -e LANGSMITH_API_KEY \
+              -e LANGSMITH_ENDPOINT \
+              -e LANGSMITH_TRACING \
+              -e LANGCHAIN_TRACING_V2 \
+              -e LANGSMITH_PROJECT \
+              -e SONARQUBE_URL \
+              -e SONARQUBE_TOKEN \
+              -e SONARQUBE_PROJECT_KEY \
+              -e PAYLOAD="$PAYLOAD" \
+              "$FULL_IMAGE" > /tmp/agent_output/execution.log 2>&1; then
+
+              echo "✅ Agent execution completed successfully"
+              SUCCESS=true
+              EXIT_CODE=0
+            else
+              EXIT_CODE=$?
+              echo "❌ Agent execution failed with exit code: $EXIT_CODE"
+              if [ $ATTEMPT -lt $MAX_RETRIES ]; then
+                echo "🔄 Retrying in 30 seconds..."
+                sleep 30
+              fi
+            fi
+
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          echo "📊 Processing execution results..."
+          if [ "$SUCCESS" = "true" ]; then
+            echo "✅ ${{ inputs.agent_display_name }} completed successfully"
+            RESULT_FILE=""
+            for file in review.json result.json analysis.json tests.json output.json; do
+              if [ -f "/tmp/agent_output/$file" ]; then
+                RESULT_FILE="/tmp/agent_output/$file"
+                echo "📄 Found result file: $file"
+                break
+              fi
+            done
+            if [ -n "$RESULT_FILE" ] && [ -f "$RESULT_FILE" ]; then
+              echo "📋 Result summary:"
+              if ! jq -r '.summary // .message // "Analysis completed"' "$RESULT_FILE" 2>/dev/null; then
+                echo "📊 Results available (preview):"
+                head -n 3 "$RESULT_FILE" 2>/dev/null || echo "Unable to preview results"
+              fi
+            fi
+          else
+            echo "❌ ${{ inputs.agent_display_name }} failed"
+            [ $EXIT_CODE -eq 124 ] && echo "⏱️ Execution timed out - consider increasing timeout"
+            [ -f /tmp/agent_output/execution.log ] && echo "📋 Execution log:" && tail -n 10 /tmp/agent_output/execution.log
+          fi
+
+          echo "success=$SUCCESS" >> $GITHUB_OUTPUT
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+
+      # Remove trigger labels after successful execution
+      - name: Remove Trigger Labels
+        if: steps.agent-execution.outputs.success == 'true' && inputs.trigger_labels != '*' && inputs.trigger_labels != 'all' && inputs.trigger_labels != ''
+        run: |
+          echo "🗑️ Removing trigger labels to prevent re-triggering..."
+          
+          IFS=',' read -ra LABELS <<< "${{ inputs.trigger_labels }}"
+          for label in "${LABELS[@]}"; do
+            label=$(echo "$label" | xargs)
+            [ -z "$label" ] && continue
+            echo "🗑️ Removing label: $label"
+            curl -s -X DELETE \
+              -H "Authorization: token ${{ secrets.GIT_ACCESS_TOKEN || github.token }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/$(printf '%s' "$label" | jq -sRr @uri)" \
+              && echo "✅ Removed: $label" || echo "⚠️ Failed to remove: $label"
+          done
+
+      # Cleanup and logout
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "🧹 Cleaning up..."
+          rm -rf /tmp/agent_output
+          if [ "${{ inputs.docker_registry }}" != "docker.io" ]; then
+            docker logout "${{ inputs.docker_registry }}" 2>/dev/null || true
+          fi
+
+      # Set final workflow status
+      - name: Set Final Status
+        if: always() && steps.bot-check.outputs.proceed == 'true' && steps.label-check.outputs.proceed == 'true'
+        run: |
+          if [ "${{ steps.agent-execution.outputs.success }}" = "true" ]; then
+            echo "✅ ${{ inputs.agent_display_name }} completed successfully"
+            exit 0
+          else
+            echo "❌ ${{ inputs.agent_display_name }} failed"
+            exit 1
+          fi
