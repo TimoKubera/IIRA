@@ -1,0 +1,51 @@
+# Tech Debt Agent Workflow (Concrete Implementation)
+#
+# This workflow extends the abstract base agent workflow with Tech Debt Agent-specific configuration.
+# It demonstrates OOP inheritance by calling the reusable base workflow.
+
+name: Tech Debt Agent - Code Analysis
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+jobs:
+  tech-debt-agent:
+    # Only run if any of the trigger labels are currently set on the PR
+    if: contains(join(github.event.pull_request.labels.*.name, ','), 'tech-debt-agent')
+    # Call the abstract base workflow with Tech Debt Agent-specific parameters
+    uses: ./.github/workflows/_base-agent.yml
+    with:
+      # Agent Identity
+      agent_name: "tech_debt_agent"
+      agent_image: "tech_debt_agent:latest"
+      agent_display_name: "Tech Debt Agent - Code Analysis"
+      
+      # Trigger Configuration
+      trigger_labels: "tech-debt-agent"
+      
+      # Runtime Settings (longer timeout for comprehensive analysis)
+      agent_timeout: "1200"  # 20 minutes - comprehensive analysis takes longer
+      max_retries: "3"
+      
+      # Docker Configuration
+      docker_registry: "ghcr.io/ki-reply-gmbh/silicon-shoring-agentic-bots"
+
+      runner: '["codebuild-githubactionsrunnersonarqubedevemea-${{ github.run_id }}-${{ github.run_attempt }}"]'
+
+      # Tech Debt Agent-Specific Configuration
+      # Ensure the base workflow validates and passes these SonarQube variables
+      required_secrets: '["OPENAI_API_KEY","SONARQUBE_URL","SONARQUBE_TOKEN","SONARQUBE_PROJECT_KEY"]'
+      enable_langsmith: true
+      project_name: "Silicon Shoring NeuronsCode"
+
+    secrets:
+      # Pass all required secrets to the base workflow
+      GIT_ACCESS_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+      GIT_USER_NAME: ${{ secrets.GIT_USER_NAME }}
+      GIT_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      SONARQUBE_URL: ${{ secrets.SONARQUBE_URL }}
+      SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+      SONARQUBE_PROJECT_KEY: ${{ secrets.SONARQUBE_PROJECT_KEY }}
