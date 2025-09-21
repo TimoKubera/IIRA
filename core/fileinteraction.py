@@ -371,7 +371,10 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
     worksheet = workbook.add_worksheet()
     b_cell_format = workbook.add_format()
     b_cell_format.set_bold()
-
+    
+    # Define constant for duplicate literal
+    SUBJECTS_HEADER = "#Subjects"
+    
     not_enough_ratings = []
     
     if scale_format == "nominal" or scale_format == "ordinal":
@@ -385,7 +388,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(4, 0, "")
             worksheet.write(5, 0, "")
             worksheet.write(6, 0, "Rater ID", b_cell_format)
-            worksheet.write(6, 1, "#Subjects", b_cell_format)
+            worksheet.write(6, 1, SUBJECTS_HEADER, b_cell_format)
             worksheet.write(6, 2, "#Replicates", b_cell_format)
             j = 3
             for metric in intra_metrics:
@@ -402,7 +405,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                     continue
 
                 worksheet.write(i, 0, rater_id)
-                worksheet.write(i, 1, quant_subjects)
+                worksheet.write(i, 1, str(quant_subjects), b_cell_format)
                 worksheet.write(i, 2, quant_replicates)
 
                 j = 3
@@ -445,7 +448,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                 worksheet.write(i, 0, "Rater ID", b_cell_format)
                 worksheet.write(i+1, 0, rater_id)
 
-                worksheet.write(i, 1, "#Subjects", b_cell_format)
+                worksheet.write(i, 1, SUBJECTS_HEADER, b_cell_format)
                 worksheet.write(i+1, 1, quant_subjects)
 
                 worksheet.write(i, 2, "#Replikate", b_cell_format)
@@ -505,7 +508,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(i+3, 0, analyse.results["inter"].weights_name)
             worksheet.write(i+4, 0, "")
             worksheet.write(i+5, 0, "Rater ID's", b_cell_format)
-            worksheet.write(i+5, 1, "#Subjects", b_cell_format)
+            worksheet.write(i+5, 1, SUBJECTS_HEADER, b_cell_format)
             worksheet.write(i+5, 2, "#Raters", b_cell_format)
             worksheet.write(i+6, 1, str(quant_subjects))
             worksheet.write(i+6, 2, str(quant_raters))
