@@ -1,12 +1,11 @@
-"""
-In dem Modul wird eine Klasse definiert, die es ermöglicht eine Eingabedatei zu validieren.
-TODO ...
-"""
-
 import re
 import pathlib
 import datetime
 from math import isnan
+
+# New constant added to avoid duplicated string literals
+CONFIDENCE_INTERVAL_LABEL = "95% Konfidenzintervall"
+
 """ Standardbibliothek Imports """
 
 import pandas as pd
@@ -97,7 +96,6 @@ class FileValidation():
         
         raise ValueError
         
-
     def find_categories(self):
         for item in self.content["Categories"]: # Alle folgenden Einträge ungleich nAn
             if not pd.isnull(item):
@@ -278,7 +276,7 @@ class FileValidation():
         for i in range(len(new_df)):
             date_col.append(current_datetime)
         date_df = pd.DataFrame({"datum_ir_app": date_col})
-
+        
         df = pd.concat([df, date_df], axis="columns")
 
         file_extension = pathlib.Path(path).suffix
@@ -343,7 +341,6 @@ class DBInteraction():
 
         self.write_to_db()
 
-    
     def delete_profile(self):
         self.active_profile = self.profiles[0]
         self.profiles.remove(self.active_profile)
@@ -374,7 +371,10 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
     worksheet = workbook.add_worksheet()
     b_cell_format = workbook.add_format()
     b_cell_format.set_bold()
-
+    
+    # Define constant for duplicate literal
+    SUBJECTS_HEADER = "#Subjects"
+    
     not_enough_ratings = []
     
     if scale_format == "nominal" or scale_format == "ordinal":
@@ -388,7 +388,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(4, 0, "")
             worksheet.write(5, 0, "")
             worksheet.write(6, 0, "Rater ID", b_cell_format)
-            worksheet.write(6, 1, "#Subjects", b_cell_format)
+            worksheet.write(6, 1, SUBJECTS_HEADER, b_cell_format)
             worksheet.write(6, 2, "#Replicates", b_cell_format)
             j = 3
             for metric in intra_metrics:
@@ -405,7 +405,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                     continue
 
                 worksheet.write(i, 0, rater_id)
-                worksheet.write(i, 1, quant_subjects)
+                worksheet.write(i, 1, str(quant_subjects), b_cell_format)
                 worksheet.write(i, 2, quant_replicates)
 
                 j = 3
@@ -433,7 +433,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(i, 0, "")
             worksheet.write(i + 1, 0, "")
             i += 2
-            # Original
+            worksheet.write(i, 0, "Rater ID", b_cell_format)  
             #i = 6
             for rater_id in intra_ids:
                 quant_subjects = analyse.results["intra"][rater_id].n
@@ -448,7 +448,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                 worksheet.write(i, 0, "Rater ID", b_cell_format)
                 worksheet.write(i+1, 0, rater_id)
 
-                worksheet.write(i, 1, "#Subjects", b_cell_format)
+                worksheet.write(i, 1, SUBJECTS_HEADER, b_cell_format)
                 worksheet.write(i+1, 1, quant_subjects)
 
                 worksheet.write(i, 2, "#Replikate", b_cell_format)
@@ -469,7 +469,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                         worksheet.write(i, 1, "p-Wert", b_cell_format)
                         worksheet.write(i+1, 1, str(metric_dict["p_value"]))
 
-                        worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                        worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                         worksheet.write(i+1, 2, str(metric_dict["confidence_interval"]))
 
                         worksheet.write(i+2, 0, "")
@@ -481,7 +481,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                         worksheet.write(i, 1, "p-Wert", b_cell_format)
                         worksheet.write(i+1, 1, "n.a.")
 
-                        worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                        worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                         worksheet.write(i+1, 2, "(n.a., n.a.)")
 
                         worksheet.write(i+2, 0, "")
@@ -508,7 +508,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(i+3, 0, analyse.results["inter"].weights_name)
             worksheet.write(i+4, 0, "")
             worksheet.write(i+5, 0, "Rater ID's", b_cell_format)
-            worksheet.write(i+5, 1, "#Subjects", b_cell_format)
+            worksheet.write(i+5, 1, SUBJECTS_HEADER, b_cell_format)
             worksheet.write(i+5, 2, "#Raters", b_cell_format)
             worksheet.write(i+6, 1, str(quant_subjects))
             worksheet.write(i+6, 2, str(quant_raters))
@@ -528,11 +528,10 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                 worksheet.write(i, 1, "p-Wert", b_cell_format)
                 worksheet.write(i+1, 1, str(metric_dict["p_value"]))
 
-                worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                 worksheet.write(i+1, 2, str(metric_dict["confidence_interval"]))
 
                 worksheet.write(i+2, 0, "")
                 i = i + 3
                 
-
     workbook.close()
