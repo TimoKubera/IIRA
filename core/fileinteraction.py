@@ -96,7 +96,6 @@ class FileValidation():
         
         raise ValueError
         
-
     def find_categories(self):
         for item in self.content["Categories"]: # Alle folgenden Einträge ungleich nAn
             if not pd.isnull(item):
@@ -277,7 +276,7 @@ class FileValidation():
         for i in range(len(new_df)):
             date_col.append(current_datetime)
         date_df = pd.DataFrame({"datum_ir_app": date_col})
-
+        
         df = pd.concat([df, date_df], axis="columns")
 
         file_extension = pathlib.Path(path).suffix
@@ -342,7 +341,6 @@ class DBInteraction():
 
         self.write_to_db()
 
-    
     def delete_profile(self):
         self.active_profile = self.profiles[0]
         self.profiles.remove(self.active_profile)
@@ -533,5 +531,4 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                 worksheet.write(i+2, 0, "")
                 i = i + 3
                 
-
     workbook.close()
