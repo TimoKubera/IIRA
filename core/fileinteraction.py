@@ -2,6 +2,10 @@ import re
 import pathlib
 import datetime
 from math import isnan
+
+# New constant added to avoid duplicated string literals
+CONFIDENCE_INTERVAL_LABEL = "95% Konfidenzintervall"
+
 """ Standardbibliothek Imports """
 
 import pandas as pd
@@ -464,7 +468,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                         worksheet.write(i, 1, "p-Wert", b_cell_format)
                         worksheet.write(i+1, 1, str(metric_dict["p_value"]))
 
-                        worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                        worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                         worksheet.write(i+1, 2, str(metric_dict["confidence_interval"]))
 
                         worksheet.write(i+2, 0, "")
@@ -476,7 +480,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                         worksheet.write(i, 1, "p-Wert", b_cell_format)
                         worksheet.write(i+1, 1, "n.a.")
 
-                        worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                        worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                         worksheet.write(i+1, 2, "(n.a., n.a.)")
 
                         worksheet.write(i+2, 0, "")
@@ -523,7 +527,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
                 worksheet.write(i, 1, "p-Wert", b_cell_format)
                 worksheet.write(i+1, 1, str(metric_dict["p_value"]))
 
-                worksheet.write(i, 2, "95% Konfidenzintervall", b_cell_format)
+                worksheet.write(i, 2, CONFIDENCE_INTERVAL_LABEL, b_cell_format)
                 worksheet.write(i+1, 2, str(metric_dict["confidence_interval"]))
 
                 worksheet.write(i+2, 0, "")
