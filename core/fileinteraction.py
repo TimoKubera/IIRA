@@ -430,7 +430,7 @@ def write_excel(analyse, intra_ids, intra_metrics, inter_ids, inter_metrics, sca
             worksheet.write(i, 0, "")
             worksheet.write(i + 1, 0, "")
             i += 2
-            # Original
+            worksheet.write(i, 0, "Rater ID", b_cell_format)  
             #i = 6
             for rater_id in intra_ids:
                 quant_subjects = analyse.results["intra"][rater_id].n
