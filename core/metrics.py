@@ -16,6 +16,15 @@ from math import isnan
 """ Standardbibliothek Imports """
 
 def _compute_weight_matrix(n, mode="linear"):
+    """Compute a weight matrix of size n x n.
+    
+    Args:
+        n: Size of the matrix.
+        mode: Mode of computation. Can be 'linear', 'quadratic' or any other string.
+    
+    Returns:
+        A 2D list representing the weight matrix.
+    """
     matrix = [[0 for _ in range(n)] for _ in range(n)]
     for i in range(n):
         for j in range(n):
@@ -60,6 +69,14 @@ class Metrics():
         ratings: pd.DataFrame,
         weights: list
     ) -> None:
+        """Initialize the Metrics object.
+        
+        Args:
+            scale_format: The scale format.
+            categories: List of categories.
+            ratings: DataFrame of ratings.
+            weights: List of weights.
+        """
         self.debug = False
         self.scale_format = scale_format
         self.categories = categories
@@ -112,30 +129,43 @@ class Metrics():
 
 
     def cohens_kappa(self):
-        """
-        Cohen's Kappa für nominale Daten. Exakt 2 Repliakte pro Subject erforderlich.
-        Quelle: INTRARATER RELIABILITY, KILEM L. GWET, STATAXIS Consulting, Gaithersburg, Maryland
+        """Calculate Cohen's Kappa for nominal data.
+        
+        Returns:
+            The calculated Cohen's Kappa value.
         """
         return self.analysis.conger()["est"]["coefficient_value"]
 
     def fleiss_kappa(self):
-        """
+        """Calculate Fleiss' Kappa.
+        
+        Returns:
+            The calculated Fleiss' Kappa value.
         """
         return self.analysis.fleiss()["est"]["coefficient_value"]
 
     def gwets_ac(self):
-        """
+        """Calculate Gwet's AC.
+        
+        Returns:
+            The calculated Gwet's AC value.
         """
         return self.analysis.gwet()["est"]["coefficient_value"]
 
 
     def krippendorfs_alpha(self):
+        """Calculate Krippendorff's Alpha.
+        
+        Returns:
+            The calculated Krippendorff's Alpha value.
+        """
         return self.analysis.krippendorff()["est"]["coefficient_value"]
 
     def g_index(self):
-        """
-        G_Index für nominale Daten. 2 oder mehr Replikate pro Subject.
-        Quelle: INTRARATER RELIABILITY, KILEM L. GWET, STATAXIS Consulting, Gaithersburg, Maryland
+        """Calculate G_Index for nominal data.
+        
+        Returns:
+            The calculated G_Index value.
         """
         #TODO Vorraussetzungen checken
         q = len(self.categories)
@@ -146,46 +176,10 @@ class Metrics():
         return float(round(g_index, 4))
 
     def icc(self):
-        """
-        Berechnet die unterschiedlichen ICC-Werte mit dem pingouin package.
-        Es werden die folgenden ICC's berechnet:
-        ICC1    Single raters absolute
-        ICC2      Single random raters
-        ICC3       Single fixed raters
-        ICC1k  Average raters absolute
-        ICC2k    Average random raters
-        ICC3k     Average fixed raters
-
-        Die ICC-Funktion aus dem Package erwartet eine andere Struktur der Dateien.
-        Der pandas-Dataframe von oben
-                Rater1  Rater2  Rater3  Rater4
-        Units
-        0         1.0     1.0     NaN     1.0
-        1         2.0     2.0     3.0     2.0
-        2         3.0     3.0     3.0     3.0
-        3         3.0     3.0     3.0     3.0
-        4         2.0     2.0     2.0     2.0
-        5         1.0     2.0     3.0     4.0
-        6         4.0     4.0     4.0     4.0
-        7         1.0     1.0     2.0     1.0
-        8         2.0     2.0     2.0     2.0
-        9         NaN     5.0     5.0     5.0
-        10        NaN     NaN     1.0     1.0
-        11        NaN     NaN     3.0     NaN
-
+        """Calculate the different ICC values with the pingouin package.
         
-        muss zunächst umgeformt werden in drei Listen:
-
-        pg_targets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
-                      10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        pg_raters = ['Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 'Rater1', 
-                     'Rater1', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 'Rater2', 
-                     'Rater2', 'Rater2', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 'Rater3', 
-                     'Rater3', 'Rater3', 'Rater3', 'Rater4', 'Rater4', 'Rater4', 'Rater4', 'Rater4', 'Rater4', 'Rater4', 'Rater4', 
-                     'Rater4', 'Rater4', 'Rater4', 'Rater4']
-        pg_ratings = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0, 4.0, 1.0, 2.0, nan, nan, nan, 1.0, 2.0, 3.0, 3.0, 2.0, 2.0, 4.0, 1.0, 2.0, 5.0, 
-                      nan, nan, nan, 3.0, 3.0, 3.0, 2.0, 3.0, 4.0, 2.0, 2.0, 5.0, 1.0, 3.0, 1.0, 2.0, 3.0, 3.0, 2.0, 4.0, 4.0, 1.0, 
-                      2.0, 5.0, 1.0, nan]
+        Returns:
+            A DataFrame with the calculated ICC values.
         """
         pg_targets = []
         pg_raters = []
@@ -216,8 +210,10 @@ class Metrics():
 
     # Helper functions
     def overall_agreement(self):
-        """
-        Quelle: INTRARATER RELIABILITY, KILEM L. GWET, STATAXIS Consulting, Gaithersburg, Maryland
+        """Calculate the overall agreement.
+        
+        Returns:
+            The calculated overall agreement value.
         """
         q = len(self.categories)
         p_a = dec.Decimal("0")
@@ -260,15 +256,19 @@ class Metrics():
     
 
 def map_metrics(metric):
+    """Map metric names to function names.
+    
+    Args:
+        metric: The name of the metric.
+    
+    Returns:
+        The name of the function that calculates the metric.
     """
-    Die Funktion gibt für jeden Metriknamen den Namen der Funktion zurück, mit der der Wert der jeweiligen Metrik
-    in dem CAC-Objekt berechnet wird.
-    """
-    if metric == "Cohen's-|Conger's \u03BA":
+    if metric == "Cohen's-|Conger's κ":
         return "conger"
-    elif metric == "Fleiss' \u03BA":
+    elif metric == "Fleiss' κ":
         return "fleiss"
-    elif metric == "Krippendorff's \u03B1":
+    elif metric == "Krippendorff's α":
         return "krippendorff"
     elif metric == "Gwet's AC":
         return "gwet"

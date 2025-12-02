@@ -1,3 +1,4 @@
+```markdown
 <a name="readme-top"></a>
 [![MIT License][license-shield]][license-url]
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
@@ -160,6 +161,9 @@ Die Bewertung wird anschließend in dem folgenden Fenster vorgenommen.
 Beim Speichern der Bewertungssession, werden sowohl die vorgenommenen Bewertungen gespeichert, als auch ein Bewertername, bzw. eine Bewerter-ID.
 Die Bewerter-ID entspricht dem aktuell angemeldeten Profil und kann während der Bewertungssession über den entsprechenden Button, oben links, geändert werden.
 
+3. Theme Management
+Die Anwendung unterstützt nun auch das Theme Management. Standardmäßig wird das Light Theme verwendet. Das Theme kann über den ThemeManager geändert werden. Der ThemeManager verwaltet Themes und deren Konfigurationen. Es ist auch möglich, den Dark Mode zu aktivieren.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <a name="license"></a>
@@ -212,3 +216,4 @@ Project Link: [https://github.com/TimoKubera/IIRA](https://github.com/TimoKubera
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
+```

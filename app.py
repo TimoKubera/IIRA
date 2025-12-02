@@ -41,7 +41,11 @@ class ThemeManager:
     """Verwaltet Themes und deren Konfiguration"""
     
     def __init__(self, app_root: tk.Tk):
-        """Initialisiert den ThemeManager mit Standardwerten"""
+        """Initialisiert den ThemeManager mit Standardwerten.
+        
+        Args:
+            app_root: Das Root-Element der Anwendung.
+        """
         self.app_root = app_root
         self.style = ttk.Style()
         self.current_theme: Optional[str] = None
@@ -55,7 +59,14 @@ class ThemeManager:
         }
     
     def set_theme(self, theme_name: str) -> None:
-        """Aktiviert das angegebene Theme"""
+        """Aktiviert das angegebene Theme.
+        
+        Args:
+            theme_name: Der Name des Themes, das aktiviert werden soll.
+        
+        Raises:
+            ValueError: Wenn das angegebene Theme nicht existiert.
+        """
         if theme_name not in self.themes:
             raise ValueError(f"Unbekanntes Theme: {theme_name}")
             
@@ -65,13 +76,21 @@ class ThemeManager:
         self.current_theme = theme_name
     
     def get_current_theme(self) -> Optional[ThemeConfig]:
-        """Gibt die aktuelle Theme-Konfiguration zurück"""
+        """Gibt die aktuelle Theme-Konfiguration zurück.
+        
+        Returns:
+            Die aktuelle Theme-Konfiguration oder None, wenn kein Theme gesetzt ist.
+        """
         if self.current_theme:
             return self.themes[self.current_theme]
         return None
     
     def is_dark_mode(self) -> bool:
-        """Gibt zurück, ob der Dark Mode aktiv ist"""
+        """Gibt zurück, ob der Dark Mode aktiv ist.
+        
+        Returns:
+            True, wenn der Dark Mode aktiv ist, sonst False.
+        """
         if self.current_theme and self.current_theme in self.themes:
             return self.themes[self.current_theme].is_dark
         return False
@@ -105,6 +124,7 @@ class App(tk.Tk):
     def __init__(self):
         """
         Konstruktor-Methode der App-Klasse.
+        Initialisiert die App und lädt alle Icons, die in der Anwendung angezeigt werden.
         """
         super().__init__()
         # Alle Icons die in der Anwendung angezeigt werden.
@@ -149,12 +169,15 @@ class App(tk.Tk):
         Methode zum Wechseln des Frames der aktuell angezeigt wird.
 
         Args:
-            frame_name (ttk.Frame): Der Frame, der angezeigt werden soll.
+            frame_name (str): Der Name des Frames, der angezeigt werden soll.
         """
         frame = self.frames[frame_name]
         frame.tkraise()
     
     def load_icons(self):
+        """
+        Lädt alle Icons, die in der Anwendung angezeigt werden.
+        """
         self.app_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/intrarater_512px.png"))
         self.file_select_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/file_select.png"))
         self.home_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/home_32px.png"))
@@ -174,9 +197,25 @@ class App(tk.Tk):
         self.checked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-accent.png"))
 
     def init_root_frame(self, frame):
+        """
+        Initialisiert den Root-Frame.
+        
+        Args:
+            frame: Der Frame, der als Root-Frame initialisiert werden soll.
+        """
         frame.grid(row=0, column=0, sticky="nsew")
     
     def _process_config(self, cfg, lvl=0):
+        """
+        Verarbeitet die Konfiguration.
+        
+        Args:
+            cfg: Die zu verarbeitende Konfiguration.
+            lvl: Das aktuelle Level der Verarbeitung.
+        
+        Returns:
+            Die verarbeitete Konfiguration.
+        """
         if lvl > 5:
             return cfg
         

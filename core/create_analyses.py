@@ -23,6 +23,15 @@ pd.set_option("display.width", 1000)
 """ Pandas-Optionen, um die vollständigen Tabellen zu printen """
 
 def _calc_threshold(vals, mode=1):
+    """Calculate the threshold based on the given mode.
+    
+    Args:
+        vals: List of values
+        mode: Mode for calculating the threshold (default is 1)
+    
+    Returns:
+        Threshold value
+    """
     if mode == 1:
         return sum(vals) / len(vals) * 0.85
     elif mode == 2:
@@ -32,6 +41,16 @@ def _calc_threshold(vals, mode=1):
         return max(vals) * 0.6
 
 def _filter_data(data, th, strict=False):
+    """Filter the data based on the given threshold and strictness.
+    
+    Args:
+        data: List of data items
+        th: Threshold value
+        strict: Boolean indicating whether to apply strict filtering (default is False)
+    
+    Returns:
+        Filtered list of data items
+    """
     result = []
     for item in data:
         if strict:
@@ -55,6 +74,18 @@ class CreateAnalyses():
         weights: list,
         data: dict
     ) -> None:
+        """Initialize the CreateAnalyses class.
+        
+        Args:
+            intra_id_list: List of intra IDs
+            inter_id_list: List of inter IDs
+            intra_metrics: List of intra metrics
+            inter_metrics: List of inter metrics
+            scale_format: Scale format
+            categories: List of categories
+            weights: List of weights
+            data: Data dictionary
+        """
         self.debug = True
         self.intra_id_list = intra_id_list
         self.inter_id_list = inter_id_list
@@ -110,6 +141,7 @@ class CreateAnalyses():
 
 
     def create_intra_analyses(self):
+        """Create intra analyses for each ID in the intra ID list."""
         for id in self.intra_id_list:
             self.results["intra"][id] = {}
 
@@ -129,6 +161,7 @@ class CreateAnalyses():
                 print()
 
     def create_inter_analyses(self):
+        """Create inter analyses for the IDs in the inter ID list."""
         ratings = self.find_inter_ratings()
         if self.debug:
             print("Inter Ratings:")
@@ -177,6 +210,11 @@ class CreateAnalyses():
 
 
     def find_inter_ratings(self):
+        """Find inter ratings for the IDs in the inter ID list.
+        
+        Returns:
+            Pandas DataFrame of inter ratings
+        """
         ret = {}
         for i, id in enumerate(self.inter_id_list):
             for rating in self.data[id]:
@@ -192,5 +230,4 @@ class CreateAnalyses():
                     # Andernfalls füge das erste Label hinzu
                     ret[rating[TEXT]] = [rating[LABEL]]
 
-        return pd.DataFrame.from_dict(ret, orient="index")                
-
+        return pd.DataFrame.from_dict(ret, orient="index")
