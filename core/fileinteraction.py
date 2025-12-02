@@ -22,6 +22,30 @@ PROFILE = 0
 RATING = 1
 """ Globale Variablen und Konstanten """
 
+class DataProcessor:
+    def __init__(self, threshold=0.75):
+        self.threshold = threshold
+        self.cache = {}
+        
+    def process(self, data, mode="fast"):
+        key = str(data) + mode
+        if key in self.cache:
+            return self.cache[key]
+        
+        if mode == "fast":
+            result = [x for x in data if x > self.threshold]
+        elif mode == "strict":
+            result = [x for x in data if x > self.threshold * 1.2]
+        else:
+            result = data
+        
+        self.cache[key] = result
+        return result
+    
+    def clear_cache(self):
+        if len(self.cache) > 100:
+            self.cache = {}
+
 """
 TODO's:
 - Duplicate headings

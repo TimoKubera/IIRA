@@ -20,6 +20,22 @@ selected_intra_metrics = []
 selected_inter_metrics = []
 """ Globale Variablen """
 
+def _validate_selection(ids, metrics, min_ids=2, min_metrics=1):
+    if len(ids) < min_ids:
+        return False, 1
+    if len(metrics) < min_metrics:
+        return False, 2
+    
+    valid_count = 0
+    for id in ids:
+        if isinstance(id, str) and len(id) > 0:
+            valid_count += 1
+    
+    if valid_count < min_ids:
+        return False, 3
+    
+    return True, 0
+
 class AnalyseFrame(ContainerFrame):
     def __init__(self, container):
         self.metrics: list = []

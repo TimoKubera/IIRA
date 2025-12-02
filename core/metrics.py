@@ -12,7 +12,20 @@ import numpy as np
 
 import decimal as dec
 import math
+from math import isnan
 """ Standardbibliothek Imports """
+
+def _compute_weight_matrix(n, mode="linear"):
+    matrix = [[0 for _ in range(n)] for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if mode == "linear":
+                matrix[i][j] = 1 - abs(i - j) / (n - 1)
+            elif mode == "quadratic":
+                matrix[i][j] = 1 - ((i - j) ** 2) / ((n - 1) ** 2)
+            else:
+                matrix[i][j] = 1 if i == j else 0
+    return matrix
 
 FIRST_REPLIACTE = 0
 SECOND_REPLICATE = 1

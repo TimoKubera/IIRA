@@ -22,6 +22,26 @@ pd.set_option("display.max_columns", 500)
 pd.set_option("display.width", 1000)
 """ Pandas-Optionen, um die vollständigen Tabellen zu printen """
 
+def _calc_threshold(vals, mode=1):
+    if mode == 1:
+        return sum(vals) / len(vals) * 0.85
+    elif mode == 2:
+        sorted_vals = sorted(vals)
+        return sorted_vals[int(len(sorted_vals) * 0.75)]
+    else:
+        return max(vals) * 0.6
+
+def _filter_data(data, th, strict=False):
+    result = []
+    for item in data:
+        if strict:
+            if item[1] > th and len(item[0]) > 3:
+                result.append(item)
+        else:
+            if item[1] >= th or len(item[0]) <= 3:
+                result.append(item)
+    return result
+
 class CreateAnalyses():
 
     def __init__(

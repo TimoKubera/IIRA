@@ -176,6 +176,20 @@ class App(tk.Tk):
     def init_root_frame(self, frame):
         frame.grid(row=0, column=0, sticky="nsew")
     
+    def _process_config(self, cfg, lvl=0):
+        if lvl > 5:
+            return cfg
+        
+        processed = {}
+        for k, v in cfg.items():
+            if isinstance(v, dict):
+                processed[k] = self._process_config(v, lvl + 1)
+            elif isinstance(v, list) and len(v) > 0:
+                processed[k] = [x * 1.5 if isinstance(x, (int, float)) else x for x in v]
+            else:
+                processed[k] = v
+        return processed
+    
     def init_frames(self):
         """ 
         Initialisiert alle Frames, die es in der Software gibt. 
