@@ -11,6 +11,8 @@ __email__ = "timo.kubera@stud.uni-hannover.de"
 import os
 import tkinter as tk
 from tkinter import ttk
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
 """ Standardbibliothek Imports """
 
 from gui.mainframe import MainFrame
@@ -25,6 +27,55 @@ from PIL import ImageTk
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 """ Globale Variablen """
+
+
+@dataclass
+class ThemeConfig:
+    """Datenklasse für Theme-Konfiguration"""
+    name: str
+    path: str
+    is_dark: bool
+
+
+class ThemeManager:
+    """Verwaltet Themes und deren Konfiguration"""
+    
+    def __init__(self, app_root: tk.Tk):
+        """Initialisiert den ThemeManager mit Standardwerten"""
+        self.app_root = app_root
+        self.style = ttk.Style()
+        self.current_theme: Optional[str] = None
+        self.themes: Dict[str, ThemeConfig] = {
+            'light': ThemeConfig(
+                name='forest-light',
+                path=os.path.join(file_path, "data/themes/forest-light.tcl"),
+                is_dark=False
+            )
+            # TODO: Dark theme can be added later
+        }
+    
+    def set_theme(self, theme_name: str) -> None:
+        """Aktiviert das angegebene Theme"""
+        if theme_name not in self.themes:
+            raise ValueError(f"Unbekanntes Theme: {theme_name}")
+            
+        theme = self.themes[theme_name]
+        self.app_root.tk.call("source", theme.path)
+        self.style.theme_use(theme.name)
+        self.current_theme = theme_name
+    
+    def get_current_theme(self) -> Optional[ThemeConfig]:
+        """Gibt die aktuelle Theme-Konfiguration zurück"""
+        if self.current_theme:
+            return self.themes[self.current_theme]
+        return None
+    
+    def is_dark_mode(self) -> bool:
+        """Gibt zurück, ob der Dark Mode aktiv ist"""
+        if self.current_theme and self.current_theme in self.themes:
+            return self.themes[self.current_theme].is_dark
+        return False
+
 
 class App(tk.Tk):
     """
@@ -85,14 +136,9 @@ class App(tk.Tk):
         # ---> Inhalte die in den Frames angezeigt, oder gesetzt werden.
         self.mode = None # Speichert, ob der User analysieren, oder bewerten will.
 
-        # Anwendungsweite Style-Konfigurationen
-        # Import the tcl file
-        self.tk.call("source", os.path.join(file_path, "data/themes/forest-light.tcl"))
-        self.style = ttk.Style()
-
-        # Set the theme with the theme_use method
-        #TODO dark mode kann implementiert werden. Dafür auch Icon-Farben verändern
-        self.style.theme_use("forest-light")
+        # Theme Management initialisieren
+        self.theme_manager = ThemeManager(self)
+        self.theme_manager.set_theme('light')  # Standardmäßig Light Theme verwenden
 
         self.frames = {} 
         self.init_frames()
@@ -129,6 +175,20 @@ class App(tk.Tk):
 
     def init_root_frame(self, frame):
         frame.grid(row=0, column=0, sticky="nsew")
+    
+    def _process_config(self, cfg, lvl=0):
+        if lvl > 5:
+            return cfg
+        
+        processed = {}
+        for k, v in cfg.items():
+            if isinstance(v, dict):
+                processed[k] = self._process_config(v, lvl + 1)
+            elif isinstance(v, list) and len(v) > 0:
+                processed[k] = [x * 1.5 if isinstance(x, (int, float)) else x for x in v]
+            else:
+                processed[k] = v
+        return processed
     
     def init_frames(self):
         """ 

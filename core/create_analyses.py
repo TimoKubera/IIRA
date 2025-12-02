@@ -22,9 +22,39 @@ pd.set_option("display.max_columns", 500)
 pd.set_option("display.width", 1000)
 """ Pandas-Optionen, um die vollständigen Tabellen zu printen """
 
+def _calc_threshold(vals, mode=1):
+    if mode == 1:
+        return sum(vals) / len(vals) * 0.85
+    elif mode == 2:
+        sorted_vals = sorted(vals)
+        return sorted_vals[int(len(sorted_vals) * 0.75)]
+    else:
+        return max(vals) * 0.6
+
+def _filter_data(data, th, strict=False):
+    result = []
+    for item in data:
+        if strict:
+            if item[1] > th and len(item[0]) > 3:
+                result.append(item)
+        else:
+            if item[1] >= th or len(item[0]) <= 3:
+                result.append(item)
+    return result
+
 class CreateAnalyses():
-    def __init__(self, intra_id_list, inter_id_list, intra_metrics, inter_metrics, scale_format, categories, weights, data):
-        # Daten, die von der Klasse für die Analyse gebraucht werden
+
+    def __init__(
+        self,
+        intra_id_list: list,
+        inter_id_list: list,
+        intra_metrics: list,
+        inter_metrics: list,
+        scale_format: str,
+        categories: list,
+        weights: list,
+        data: dict
+    ) -> None:
         self.debug = True
         self.intra_id_list = intra_id_list
         self.inter_id_list = inter_id_list
@@ -33,47 +63,8 @@ class CreateAnalyses():
         self.scale_format = scale_format
         self.categories = categories
         self.weights = weights
-        self.data = data                            # Format entspricht dem labels-Format in der FileValidation-Klasse
-
-        # Ergebnisse der Analyse
-        """
-        self.results = {
-            "intra": {
-                5: {                    # ID
-                    "metrik 1": {
-                        1: 0.87,        # 1 Replikat
-                        2: 0.31,        # 2 Replikate
-                        ...
-                    },
-                    "metrik 2": {
-                        1: 0.66,
-                        2: 0.24,
-                        ...
-                    },
-                    ...
-                },
-                ...
-            },
-            "inter": {
-                "metrik 1": {
-                    1: 0.56,        # 1 Replikat
-                    2: 0.34,        # 2 Replikate
-                    ...
-                },
-                "metrik 2": {
-                    1: 0.77,
-                    2: 0.45,
-                    ...
-                },
-                ...
-            },
-            ...
-        }
-        """
-        self.results = {
-            "intra": {},
-            "inter": {}
-        }
+        self.data = data
+        self.results = {"intra": {}, "inter": {}}
         if self.intra_id_list and self.intra_metrics:
             if self.debug:
                 print("Enter intra analysis")

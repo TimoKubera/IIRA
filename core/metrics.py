@@ -12,7 +12,20 @@ import numpy as np
 
 import decimal as dec
 import math
+from math import isnan
 """ Standardbibliothek Imports """
+
+def _compute_weight_matrix(n, mode="linear"):
+    matrix = [[0 for _ in range(n)] for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if mode == "linear":
+                matrix[i][j] = 1 - abs(i - j) / (n - 1)
+            elif mode == "quadratic":
+                matrix[i][j] = 1 - ((i - j) ** 2) / ((n - 1) ** 2)
+            else:
+                matrix[i][j] = 1 if i == j else 0
+    return matrix
 
 FIRST_REPLIACTE = 0
 SECOND_REPLICATE = 1
@@ -40,27 +53,31 @@ class Metrics():
     10        NaN     NaN     1.0     1.0
     11        NaN     NaN     3.0     NaN
     """
-    def __init__(self, scale_format, categories, ratings, weights):
+    def __init__(
+        self,
+        scale_format: str,
+        categories: list,
+        ratings: pd.DataFrame,
+        weights: list
+    ) -> None:
         self.debug = False
         self.scale_format = scale_format
         self.categories = categories
         self.ratings = ratings
         self.quantity_subjects = len(self.ratings)
         self.replications = 2
-
         self.weights = weights
         self.analysis = None
-
-        if scale_format == "ordinal" or scale_format == "nominal":
+        if scale_format in ("ordinal", "nominal"):
             try:
                 self.analysis = CAC(ratings=self.ratings, weights=self.weights, categories=self.categories, digits=4)
             except Exception as e:
-                print("Exception creating irrCAC analysis: " + str(e))
+                print(f"Exception creating irrCAC analysis: {e}")
         else:
             try:
                 self.analysis = self.icc()
             except Exception as e:
-                print("Exception creating pingouin analysis: " + str(e))
+                print(f"Exception creating pingouin analysis: {e}")
 
         dec.setcontext(dec.Context(prec=34))
 
