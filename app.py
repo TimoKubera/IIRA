@@ -2,10 +2,6 @@
 In diesem Modul wird die Steuerung der Anwendung realisiert.
 Es ist das Top-Level-Modul der Anwendung und ruft alle weiteren Submodule auf.
 
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
-"""
-__author__ = "Timo Kubera"
 __email__ = "timo.kubera@stud.uni-hannover.de"
 
 import os
@@ -173,4 +169,5 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
   app = App()
+
   app.mainloop()
