@@ -49,62 +49,48 @@ class App(tk.Tk):
 
     def __init__(self):
         """
-        Konstruktor-Methode der App-Klasse.
+        Constructor method of the App class.
+        Initializes the application, loads icons, sets up frames, and displays the main frame.
         """
         super().__init__()
-        # Alle Icons die in der Anwendung angezeigt werden.
         self.load_icons()
-
-        # Attribute die nicht mit tkinter zusammenhängen
-        #TODO Dummy-Werte löschen
         self.filevalidation = None
         self.dbinteraction = DBInteraction(os.path.join(file_path, "data/internal_db.csv"))
-        self.scale_format = ""      # Skalenformate sind nominal, ordinal, intervall und ratio.
+        self.scale_format = ""
         self.weights = ""
-        
-        #TODO löschen und auf Attribute von filevalidation zurückgreifen
         self.categories = []
         self.rater_ids = []
         self.text = []
         self.formatted_text = []
-        self.labels = {} # Label pro Text und Rater
-
-        # tkinter Attribute
+        self.labels = {}
         self.title("IIRA")
-        #self.iconphoto(False, self.app_icon)
         self.geometry("1500x750")
         self.minsize(1450, 750)
-
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        self.light_mode = True  #TODO Wert aus DB auslesen, soblad darkmode implementiert wurde.
-        # ---> Inhalte die in den Frames angezeigt, oder gesetzt werden.
-        self.mode = None # Speichert, ob der User analysieren, oder bewerten will.
-
-        # Anwendungsweite Style-Konfigurationen
-        # Import the tcl file
+        self.light_mode = True
+        self.mode = None
         self.tk.call("source", os.path.join(file_path, "data/themes/forest-light.tcl"))
         self.style = ttk.Style()
-
-        # Set the theme with the theme_use method
-        #TODO dark mode kann implementiert werden. Dafür auch Icon-Farben verändern
         self.style.theme_use("forest-light")
-
-        self.frames = {} 
+        self.frames = {}
         self.init_frames()
         self.show_frame("MainFrame")
-    
+
     def show_frame(self, frame_name):
         """
-        Methode zum Wechseln des Frames der aktuell angezeigt wird.
+        Method to switch the frame currently being displayed.
 
         Args:
-            frame_name (ttk.Frame): Der Frame, der angezeigt werden soll.
+            frame_name (str): The name of the frame to be displayed.
         """
         frame = self.frames[frame_name]
         frame.tkraise()
-    
+
     def load_icons(self):
+        """
+        Loads all the icons used in the application.
+        """
         self.app_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/intrarater_512px.png"))
         self.file_select_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/file_select.png"))
         self.home_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/home_32px.png"))
@@ -116,55 +102,46 @@ class App(tk.Tk):
         self.tooltip_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/tooltip-16px.png"))
         self.save_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/save_32px.png"))
         self.delete_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/delete_32px.png"))
-        
-        #TODO Für darkmode anpassen, bzw löschen
         self.light_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/light_mode_32px.png"))
         self.dark_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/dark_mode.png"))
         self.unchecked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-unsel-accent.png"))
         self.checked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-accent.png"))
 
     def init_root_frame(self, frame):
+        """
+        Initializes the root frame.
+
+        Args:
+            frame (ttk.Frame): The frame to be initialized.
+        """
         frame.grid(row=0, column=0, sticky="nsew")
-    
+
     def init_frames(self):
-        """ 
-        Initialisiert alle Frames, die es in der Software gibt. 
-        Die Frames werden in einem Dictionary gespeichert, um mit der show_frame-Funktion zwischen den Frames
-        wechseln zu können.
+        """
+        Initializes all frames in the software.
+        The frames are stored in a dictionary to switch between frames using the show_frame function.
         """
         for frame in self.frames:
-            # Löscht den Inhalt der frames.
-            # Ist beim startup der Applikation nicht von Bedeutung und wird dann übersprüngen, weil
-            # self.frames leer ist. Die Funktion wird aber auch benutzt, wenn der Home-Button angeklickt wird.
-            # In dem Fall werden die Fensterinhalte zurückgesetzt. 
             for widget in self.frames[frame].winfo_children():
                 widget.destroy()
-
-        # Frames initialisieren
         main_frame = MainFrame(self)
         self.init_root_frame(main_frame)
         self.frames["MainFrame"] = main_frame
-
         scale_frame = ScaleFrame(self)
         self.init_root_frame(scale_frame)
         self.frames["ScaleFrame"] = scale_frame
-
         file_frame = FileFrame(self)
         self.init_root_frame(file_frame)
         self.frames["FileFrame"] = file_frame
-
         rate_frame = RateFrame(self)
         self.init_root_frame(rate_frame)
         self.frames["RateFrame"] = rate_frame
-
         restults_frame = ResultsFrame(self)
         self.init_root_frame(restults_frame)
         self.frames["ResultsFrame"] = restults_frame
-
         analyse_frame = AnalyseFrame(self)
         self.init_root_frame(analyse_frame)
         self.frames["AnalyseFrame"] = analyse_frame
-
 
 
 if __name__ == "__main__":
