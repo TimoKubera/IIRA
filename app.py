@@ -54,6 +54,7 @@ class App(tk.Tk):
     def __init__(self):
         """
         Konstruktor-Methode der App-Klasse.
+        Initialisiert die App-Klasse und lädt alle Icons, die in der Anwendung angezeigt werden.
         """
         super().__init__()
         # Alle Icons die in der Anwendung angezeigt werden.
@@ -103,12 +104,15 @@ class App(tk.Tk):
         Methode zum Wechseln des Frames der aktuell angezeigt wird.
 
         Args:
-            frame_name (ttk.Frame): Der Frame, der angezeigt werden soll.
+            frame_name (str): Der Name des Frames, der angezeigt werden soll.
         """
         frame = self.frames[frame_name]
         frame.tkraise()
     
     def load_icons(self):
+        """
+        Lädt alle Icons, die in der Anwendung angezeigt werden.
+        """
         self.app_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/intrarater_512px.png"))
         self.file_select_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/file_select.png"))
         self.home_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/home_32px.png"))
@@ -128,6 +132,12 @@ class App(tk.Tk):
         self.checked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-accent.png"))
 
     def init_root_frame(self, frame):
+        """
+        Initialisiert den Root-Frame.
+
+        Args:
+            frame (tk.Frame): Der Frame, der als Root-Frame initialisiert werden soll.
+        """
         frame.grid(row=0, column=0, sticky="nsew")
     
     def init_frames(self):
@@ -171,6 +181,9 @@ class App(tk.Tk):
 
 
     def print_sample_text(self):
+        """
+        Druckt einen Beispielsatz auf die Konsole.
+        """
         print("Hello World")
 
 if __name__ == "__main__":
