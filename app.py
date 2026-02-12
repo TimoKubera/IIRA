@@ -169,7 +169,8 @@ class App(tk.Tk):
         self.init_root_frame(analyse_frame)
         self.frames["AnalyseFrame"] = analyse_frame
 
-
+def printSampleText():
+    print("Hello World")
 
 if __name__ == "__main__":
   app = App()
