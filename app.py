@@ -180,6 +180,9 @@ class App(tk.Tk):
         self.frames["AnalyseFrame"] = analyse_frame
 
     def print_sample_string(self):
+        """
+        Prints a sample string based on a random condition.
+        """
         num = random.randint(0, 100)*2
         if num > 50:
             print("Hello World")
