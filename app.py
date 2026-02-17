@@ -103,12 +103,15 @@ class App(tk.Tk):
         Methode zum Wechseln des Frames der aktuell angezeigt wird.
 
         Args:
-            frame_name (ttk.Frame): Der Frame, der angezeigt werden soll.
+            frame_name (str): Der Name des Frames, der angezeigt werden soll.
         """
         frame = self.frames[frame_name]
         frame.tkraise()
     
     def load_icons(self):
+        """
+        Lädt alle Icons, die in der Anwendung angezeigt werden.
+        """
         self.app_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/intrarater_512px.png"))
         self.file_select_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/file_select.png"))
         self.home_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/home_32px.png"))
@@ -128,6 +131,12 @@ class App(tk.Tk):
         self.checked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-accent.png"))
 
     def init_root_frame(self, frame):
+        """
+        Initialisiert den Root-Frame.
+
+        Args:
+            frame (ttk.Frame): Der Frame, der als Root-Frame initialisiert werden soll.
+        """
         frame.grid(row=0, column=0, sticky="nsew")
     
     def init_frames(self):
