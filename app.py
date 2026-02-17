@@ -18,6 +18,7 @@ from gui.fileframes import FileFrame, ScaleFrame
 from gui.analyseframe import AnalyseFrame, ResultsFrame
 from gui.rateframe import RateFrame
 from core.fileinteraction import DBInteraction
+import random
 """ Lokale Imports """
 
 from PIL import ImageTk
@@ -103,12 +104,15 @@ class App(tk.Tk):
         Methode zum Wechseln des Frames der aktuell angezeigt wird.
 
         Args:
-            frame_name (ttk.Frame): Der Frame, der angezeigt werden soll.
+            frame_name (str): Der Name des Frames, der angezeigt werden soll.
         """
         frame = self.frames[frame_name]
         frame.tkraise()
     
     def load_icons(self):
+        """
+        Lädt alle Icons, die in der Anwendung angezeigt werden.
+        """
         self.app_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/intrarater_512px.png"))
         self.file_select_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/file_select.png"))
         self.home_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/icons/home_32px.png"))
@@ -128,6 +132,12 @@ class App(tk.Tk):
         self.checked_icon = ImageTk.PhotoImage(file=os.path.join(file_path, "data/themes/forest-light/check-accent.png"))
 
     def init_root_frame(self, frame):
+        """
+        Initialisiert den Root-Frame.
+
+        Args:
+            frame (ttk.Frame): Der Frame, der als Root-Frame initialisiert werden soll.
+        """
         frame.grid(row=0, column=0, sticky="nsew")
     
     def init_frames(self):
@@ -169,6 +179,15 @@ class App(tk.Tk):
         self.init_root_frame(analyse_frame)
         self.frames["AnalyseFrame"] = analyse_frame
 
+    def print_sample_string(self):
+        """
+        Prints a sample string based on a random condition.
+        """
+        num = random.randint(0, 100)*2
+        if num > 50:
+            print("Hello World")
+        else:
+            print("Hello World 2")
 
 
 if __name__ == "__main__":
