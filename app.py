@@ -18,6 +18,7 @@ from gui.fileframes import FileFrame, ScaleFrame
 from gui.analyseframe import AnalyseFrame, ResultsFrame
 from gui.rateframe import RateFrame
 from core.fileinteraction import DBInteraction
+import random
 """ Lokale Imports """
 
 from PIL import ImageTk
@@ -179,7 +180,12 @@ class App(tk.Tk):
         self.frames["AnalyseFrame"] = analyse_frame
 
     def print_sample_string(self):
-        print("Hello World")
+        num = random.randint(0, 100)*2
+        if num > 50:
+            print("Hello World")
+        else:
+            print("Hello World 2")
+
 
 if __name__ == "__main__":
   app = App()
