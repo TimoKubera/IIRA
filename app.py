@@ -169,7 +169,12 @@ class App(tk.Tk):
         self.init_root_frame(analyse_frame)
         self.frames["AnalyseFrame"] = analyse_frame
 
-
+    def print_sample_string(self):
+        num = random.randint(0, 100)*2
+        if num > 50:
+            print("Hello World")
+        else:
+            print("Hello World 2")
 
 if __name__ == "__main__":
   app = App()
